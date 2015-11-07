@@ -10,7 +10,7 @@ MPI_LIB = /opt/local/lib
 
 SERCXX = g++ -DUSE_MPI=0
 MPICXX = mpig++ -DUSE_MPI=1
-CXX = $(MPICXX)
+CXX = $(SERCXX) # MODIFY HERE IF YOU WANT TO RUN SERIAL (SERCXX) OR PARALLEL (MPICXX)
 
 SOURCES2.0 = \
 	lulesh.cc \
@@ -20,13 +20,17 @@ SOURCES2.0 = \
 	lulesh-init.cc
 OBJECTS2.0 = $(SOURCES2.0:.cc=.o)
 
+# SERIAL BUILD with pragma warnings disabled.
+CXXFLAGS = -O3 -I. -w
+LDFLAGS = -O3
+
 #Default build suggestions with OpenMP for g++
-CXXFLAGS = -g -O3 -fopenmp -I. -Wall
-LDFLAGS = -g -O3 -fopenmp
+#CXXFLAGS = -g -O3 -fopenmp -I. -Wall
+#LDFLAGS = -g -O3 -fopenmp
 
 #Below are reasonable default flags for a serial build
 #CXXFLAGS = -g -O3 -I. -Wall
-#LDFLAGS = -g -O3 
+#LDFLAGS = -g -O3
 
 #common places you might find silo on the Livermore machines.
 #SILO_INCDIR = /opt/local/include
@@ -58,4 +62,3 @@ clean:
 
 tar: clean
 	cd .. ; tar cvf lulesh-2.0.tar LULESH-2.0 ; mv lulesh-2.0.tar LULESH-2.0
-
