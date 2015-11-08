@@ -1,7 +1,7 @@
 #!/bin/bash
 #@ wall_clock_limit = 00:20:00
 #@ job_name = pos-lulesh-serial
-#@ job_type = serial
+#@ job_type = MPICH
 #@ class = test
 #@ output = log/pos_lulesh_serial_$(jobid).out
 #@ error = log/pos_lulesh_serial_$(jobid).out
