@@ -21,12 +21,16 @@ SOURCES2.0 = \
 OBJECTS2.0 = $(SOURCES2.0:.cc=.o)
 
 # SERIAL BUILD with pragma warnings disabled.
-CXXFLAGS = -O3 -I. -w
-LDFLAGS = -O3
+#CXXFLAGS = -O3 -I. -w
+#LDFLAGS = -O3
 
-#Default build suggestions with OpenMP for g++
+#Default build suggestions with OpenMP for g++ (GNU compiler)
 #CXXFLAGS = -g -O3 -fopenmp -I. -Wall
 #LDFLAGS = -g -O3 -fopenmp
+
+#Default build suggestions with OpenMP for Intel compiler
+CXXFLAGS = -O3 -openmp -I.
+LDFLAGS = -O3 -openmp
 
 #Below are reasonable default flags for a serial build
 #CXXFLAGS = -g -O3 -I. -Wall
