@@ -1,0 +1,10 @@
+1
+-flag1 -flag2-f
+time = 34.88 (sec)
+2
+-flag3 -lala -kdzr6
+time = 2.34 (sec)
+3
+-jkf -we83ln -hodi -lili4
+time = 134.53 (sec)
+
