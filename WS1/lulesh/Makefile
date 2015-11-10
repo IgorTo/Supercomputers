@@ -3,6 +3,7 @@
 SHELL = /bin/sh
 .SUFFIXES: .cc .o
 
+LULESH_EXEC = bin/lulesh2
 #LULESH_EXEC = lulesh2.0
 
 MPI_INC = /opt/local/include/openmpi
@@ -19,6 +20,8 @@ SOURCES2.0 = \
 	lulesh-util.cc \
 	lulesh-init.cc
 OBJECTS2.0 = $(SOURCES2.0:.cc=.o)
+CXXFLAGS= -O3 -fomit-frame-pointer
+LDFLAGS= -O3 -fomit-frame-pointer
 
 # SERIAL BUILD with pragma warnings disabled.
 #CXXFLAGS = -O3 -I. -w
