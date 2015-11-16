@@ -1,0 +1,384 @@
+1
+-march=native
+Elapsed time = 36.91 (s)
+2
+-fomit-frame-pointer
+Elapsed time = 39.88 (s)
+3
+-march=native -fomit-frame-pointer
+Elapsed time = 36.79 (s)
+4
+-floop-block
+Elapsed time = 39.85 (s)
+5
+-march=native -floop-block
+Elapsed time = 36.97 (s)
+6
+-fomit-frame-pointer -floop-block
+Elapsed time = 39.95 (s)
+7
+-march=native -fomit-frame-pointer -floop-block
+Elapsed time = 37.04 (s)
+8
+-floop-interchange
+Elapsed time = 40.04 (s)
+9
+-march=native -floop-interchange
+Elapsed time = 37.00 (s)
+10
+-fomit-frame-pointer -floop-interchange
+Elapsed time = 40.23 (s)
+11
+-march=native -fomit-frame-pointer -floop-interchange
+Elapsed time = 36.93 (s)
+12
+-floop-block -floop-interchange
+Elapsed time = 40.00 (s)
+13
+-march=native -floop-block -floop-interchange
+Elapsed time = 37.00 (s)
+14
+-fomit-frame-pointer -floop-block -floop-interchange
+Elapsed time = 40.00 (s)
+15
+-march=native -fomit-frame-pointer -floop-block -floop-interchange
+Elapsed time = 36.96 (s)
+16
+-floop-strip-mine
+Elapsed time = 39.97 (s)
+17
+-march=native -floop-strip-mine
+Elapsed time = 36.86 (s)
+18
+-fomit-frame-pointer -floop-strip-mine
+Elapsed time = 39.92 (s)
+19
+-march=native -fomit-frame-pointer -floop-strip-mine
+Elapsed time = 36.75 (s)
+20
+-floop-block -floop-strip-mine
+Elapsed time = 40.08 (s)
+21
+-march=native -floop-block -floop-strip-mine
+Elapsed time = 36.81 (s)
+22
+-fomit-frame-pointer -floop-block -floop-strip-mine
+Elapsed time = 39.89 (s)
+23
+-march=native -fomit-frame-pointer -floop-block -floop-strip-mine
+Elapsed time = 36.91 (s)
+24
+-floop-interchange -floop-strip-mine
+Elapsed time = 39.96 (s)
+25
+-march=native -floop-interchange -floop-strip-mine
+Elapsed time = 36.80 (s)
+26
+-fomit-frame-pointer -floop-interchange -floop-strip-mine
+Elapsed time = 39.83 (s)
+27
+-march=native -fomit-frame-pointer -floop-interchange -floop-strip-mine
+Elapsed time = 36.78 (s)
+28
+-floop-block -floop-interchange -floop-strip-mine
+Elapsed time = 39.83 (s)
+29
+-march=native -floop-block -floop-interchange -floop-strip-mine
+Elapsed time = 36.84 (s)
+30
+-fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine
+Elapsed time = 39.83 (s)
+31
+-march=native -fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine
+Elapsed time = 36.88 (s)
+32
+-funroll-loops
+Elapsed time = 39.13 (s)
+33
+-march=native -funroll-loops
+Elapsed time = 36.49 (s)
+34
+-fomit-frame-pointer -funroll-loops
+Elapsed time = 39.03 (s)
+35
+-march=native -fomit-frame-pointer -funroll-loops
+Elapsed time = 36.52 (s)
+36
+-floop-block -funroll-loops
+Elapsed time = 39.10 (s)
+37
+-march=native -floop-block -funroll-loops
+Elapsed time = 36.52 (s)
+38
+-fomit-frame-pointer -floop-block -funroll-loops
+Elapsed time = 39.03 (s)
+39
+-march=native -fomit-frame-pointer -floop-block -funroll-loops
+Elapsed time = 36.54 (s)
+40
+-floop-interchange -funroll-loops
+Elapsed time = 39.09 (s)
+41
+-march=native -floop-interchange -funroll-loops
+Elapsed time = 36.46 (s)
+42
+-fomit-frame-pointer -floop-interchange -funroll-loops
+Elapsed time = 39.09 (s)
+43
+-march=native -fomit-frame-pointer -floop-interchange -funroll-loops
+Elapsed time = 36.57 (s)
+44
+-floop-block -floop-interchange -funroll-loops
+Elapsed time = 39.30 (s)
+45
+-march=native -floop-block -floop-interchange -funroll-loops
+Elapsed time = 36.50 (s)
+46
+-fomit-frame-pointer -floop-block -floop-interchange -funroll-loops
+Elapsed time = 39.22 (s)
+47
+-march=native -fomit-frame-pointer -floop-block -floop-interchange -funroll-loops
+Elapsed time = 36.47 (s)
+48
+-floop-strip-mine -funroll-loops
+Elapsed time = 39.00 (s)
+49
+-march=native -floop-strip-mine -funroll-loops
+Elapsed time = 36.49 (s)
+50
+-fomit-frame-pointer -floop-strip-mine -funroll-loops
+Elapsed time = 39.03 (s)
+51
+-march=native -fomit-frame-pointer -floop-strip-mine -funroll-loops
+Elapsed time = 36.51 (s)
+52
+-floop-block -floop-strip-mine -funroll-loops
+Elapsed time = 39.01 (s)
+53
+-march=native -floop-block -floop-strip-mine -funroll-loops
+Elapsed time = 36.49 (s)
+54
+-fomit-frame-pointer -floop-block -floop-strip-mine -funroll-loops
+Elapsed time = 38.99 (s)
+55
+-march=native -fomit-frame-pointer -floop-block -floop-strip-mine -funroll-loops
+Elapsed time = 36.59 (s)
+56
+-floop-interchange -floop-strip-mine -funroll-loops
+Elapsed time = 39.01 (s)
+57
+-march=native -floop-interchange -floop-strip-mine -funroll-loops
+Elapsed time = 36.51 (s)
+58
+-fomit-frame-pointer -floop-interchange -floop-strip-mine -funroll-loops
+Elapsed time = 39.08 (s)
+59
+-march=native -fomit-frame-pointer -floop-interchange -floop-strip-mine -funroll-loops
+Elapsed time = 36.60 (s)
+60
+-floop-block -floop-interchange -floop-strip-mine -funroll-loops
+Elapsed time = 39.15 (s)
+61
+-march=native -floop-block -floop-interchange -floop-strip-mine -funroll-loops
+Elapsed time = 36.63 (s)
+62
+-fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -funroll-loops
+Elapsed time = 39.16 (s)
+63
+-march=native -fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -funroll-loops
+Elapsed time = 36.63 (s)
+64
+-flto
+Elapsed time = 40.13 (s)
+65
+-march=native -flto
+Elapsed time = 36.93 (s)
+66
+-fomit-frame-pointer -flto
+Elapsed time = 39.88 (s)
+67
+-march=native -fomit-frame-pointer -flto
+Elapsed time = 37.03 (s)
+68
+-floop-block -flto
+Elapsed time = 40.21 (s)
+69
+-march=native -floop-block -flto
+Elapsed time = 36.92 (s)
+70
+-fomit-frame-pointer -floop-block -flto
+Elapsed time = 40.01 (s)
+71
+-march=native -fomit-frame-pointer -floop-block -flto
+Elapsed time = 37.21 (s)
+72
+-floop-interchange -flto
+Elapsed time = 40.06 (s)
+73
+-march=native -floop-interchange -flto
+Elapsed time = 37.08 (s)
+74
+-fomit-frame-pointer -floop-interchange -flto
+Elapsed time = 40.28 (s)
+75
+-march=native -fomit-frame-pointer -floop-interchange -flto
+Elapsed time = 37.16 (s)
+76
+-floop-block -floop-interchange -flto
+Elapsed time = 40.36 (s)
+77
+-march=native -floop-block -floop-interchange -flto
+Elapsed time = 37.12 (s)
+78
+-fomit-frame-pointer -floop-block -floop-interchange -flto
+Elapsed time = 40.07 (s)
+79
+-march=native -fomit-frame-pointer -floop-block -floop-interchange -flto
+Elapsed time = 37.10 (s)
+80
+-floop-strip-mine -flto
+Elapsed time = 40.11 (s)
+81
+-march=native -floop-strip-mine -flto
+Elapsed time = 37.08 (s)
+82
+-fomit-frame-pointer -floop-strip-mine -flto
+Elapsed time = 40.17 (s)
+83
+-march=native -fomit-frame-pointer -floop-strip-mine -flto
+Elapsed time = 37.22 (s)
+84
+-floop-block -floop-strip-mine -flto
+Elapsed time = 40.05 (s)
+85
+-march=native -floop-block -floop-strip-mine -flto
+Elapsed time = 37.06 (s)
+86
+-fomit-frame-pointer -floop-block -floop-strip-mine -flto
+Elapsed time = 40.23 (s)
+87
+-march=native -fomit-frame-pointer -floop-block -floop-strip-mine -flto
+Elapsed time = 37.01 (s)
+88
+-floop-interchange -floop-strip-mine -flto
+Elapsed time = 40.07 (s)
+89
+-march=native -floop-interchange -floop-strip-mine -flto
+Elapsed time = 37.06 (s)
+90
+-fomit-frame-pointer -floop-interchange -floop-strip-mine -flto
+Elapsed time = 40.15 (s)
+91
+-march=native -fomit-frame-pointer -floop-interchange -floop-strip-mine -flto
+Elapsed time = 36.95 (s)
+92
+-floop-block -floop-interchange -floop-strip-mine -flto
+Elapsed time = 40.11 (s)
+93
+-march=native -floop-block -floop-interchange -floop-strip-mine -flto
+Elapsed time = 37.02 (s)
+94
+-fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -flto
+Elapsed time = 40.28 (s)
+95
+-march=native -fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -flto
+Elapsed time = 37.05 (s)
+96
+-funroll-loops -flto
+Elapsed time = 39.31 (s)
+97
+-march=native -funroll-loops -flto
+Elapsed time = 36.84 (s)
+98
+-fomit-frame-pointer -funroll-loops -flto
+Elapsed time = 39.57 (s)
+99
+-march=native -fomit-frame-pointer -funroll-loops -flto
+Elapsed time = 36.64 (s)
+100
+-floop-block -funroll-loops -flto
+Elapsed time = 39.33 (s)
+101
+-march=native -floop-block -funroll-loops -flto
+Elapsed time = 36.70 (s)
+102
+-fomit-frame-pointer -floop-block -funroll-loops -flto
+Elapsed time = 39.26 (s)
+103
+-march=native -fomit-frame-pointer -floop-block -funroll-loops -flto
+Elapsed time = 36.81 (s)
+104
+-floop-interchange -funroll-loops -flto
+Elapsed time = 39.42 (s)
+105
+-march=native -floop-interchange -funroll-loops -flto
+Elapsed time = 36.67 (s)
+106
+-fomit-frame-pointer -floop-interchange -funroll-loops -flto
+Elapsed time = 39.47 (s)
+107
+-march=native -fomit-frame-pointer -floop-interchange -funroll-loops -flto
+Elapsed time = 36.72 (s)
+108
+-floop-block -floop-interchange -funroll-loops -flto
+Elapsed time = 39.28 (s)
+109
+-march=native -floop-block -floop-interchange -funroll-loops -flto
+Elapsed time = 36.73 (s)
+110
+-fomit-frame-pointer -floop-block -floop-interchange -funroll-loops -flto
+Elapsed time = 39.28 (s)
+111
+-march=native -fomit-frame-pointer -floop-block -floop-interchange -funroll-loops -flto
+Elapsed time = 36.75 (s)
+112
+-floop-strip-mine -funroll-loops -flto
+Elapsed time = 39.51 (s)
+113
+-march=native -floop-strip-mine -funroll-loops -flto
+Elapsed time = 36.75 (s)
+114
+-fomit-frame-pointer -floop-strip-mine -funroll-loops -flto
+Elapsed time = 39.36 (s)
+115
+-march=native -fomit-frame-pointer -floop-strip-mine -funroll-loops -flto
+Elapsed time = 36.75 (s)
+116
+-floop-block -floop-strip-mine -funroll-loops -flto
+Elapsed time = 39.27 (s)
+117
+-march=native -floop-block -floop-strip-mine -funroll-loops -flto
+Elapsed time = 36.83 (s)
+118
+-fomit-frame-pointer -floop-block -floop-strip-mine -funroll-loops -flto
+Elapsed time = 39.21 (s)
+119
+-march=native -fomit-frame-pointer -floop-block -floop-strip-mine -funroll-loops -flto
+Elapsed time = 36.68 (s)
+120
+-floop-interchange -floop-strip-mine -funroll-loops -flto
+Elapsed time = 39.70 (s)
+121
+-march=native -floop-interchange -floop-strip-mine -funroll-loops -flto
+Elapsed time = 36.78 (s)
+122
+-fomit-frame-pointer -floop-interchange -floop-strip-mine -funroll-loops -flto
+Elapsed time = 39.67 (s)
+123
+-march=native -fomit-frame-pointer -floop-interchange -floop-strip-mine -funroll-loops -flto
+Elapsed time = 36.83 (s)
+124
+-floop-block -floop-interchange -floop-strip-mine -funroll-loops -flto
+Elapsed time = 39.35 (s)
+125
+-march=native -floop-block -floop-interchange -floop-strip-mine -funroll-loops -flto
+Elapsed time = 36.75 (s)
+126
+-fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -funroll-loops -flto
+Elapsed time = 39.30 (s)
+127
+-march=native -fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -funroll-loops -flto
+Elapsed time = 36.84 (s)
+128
+
+Elapsed time = 40.24 (s)

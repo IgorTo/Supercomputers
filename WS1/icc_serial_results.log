@@ -1,0 +1,48 @@
+1
+-march=native
+Elapsed time = 34.44 (s)
+2
+-xHost
+Elapsed time = 34.35 (s)
+3
+-march=native -xHost
+Elapsed time = 34.32 (s)
+4
+-unroll
+Elapsed time = 37.15 (s)
+5
+-march=native -unroll
+Elapsed time = 34.27 (s)
+6
+-xHost -unroll
+Elapsed time = 34.39 (s)
+7
+-march=native -xHost -unroll
+Elapsed time = 34.32 (s)
+8
+-ipo
+Elapsed time = 40.86 (s)
+9
+-march=native -ipo
+Elapsed time = 38.71 (s)
+10
+-xHost -ipo
+Elapsed time = 38.59 (s)
+11
+-march=native -xHost -ipo
+Elapsed time = 38.53 (s)
+12
+-unroll -ipo
+Elapsed time = 40.61 (s)
+13
+-march=native -unroll -ipo
+Elapsed time = 38.79 (s)
+14
+-xHost -unroll -ipo
+Elapsed time = 38.62 (s)
+15
+-march=native -xHost -unroll -ipo
+Elapsed time = 38.63 (s)
+16
+
+Elapsed time = 37.34 (s)
