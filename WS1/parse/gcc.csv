@@ -1,0 +1,129 @@
+id,flags,runtime,speedup
+76,-floop-block -floop-interchange -flto,40.36,0.997026759167493
+74,-fomit-frame-pointer -floop-interchange -flto,40.28,0.999006951340616
+94,-fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -flto,40.28,0.999006951340616
+10,-fomit-frame-pointer -floop-interchange,40.23,1.00024857071837
+86,-fomit-frame-pointer -floop-block -floop-strip-mine -flto,40.23,1.00024857071837
+68,-floop-block -flto,40.21,1.00074608306391
+82,-fomit-frame-pointer -floop-strip-mine -flto,40.17,1.0017425939756
+90,-fomit-frame-pointer -floop-interchange -floop-strip-mine -flto,40.15,1.00224159402242
+64,-flto,40.13,1.00274109145278
+80,-floop-strip-mine -flto,40.11,1.00324108701072
+92,-floop-block -floop-interchange -floop-strip-mine -flto,40.11,1.00324108701072
+20,-floop-block -floop-strip-mine,40.08,1.00399201596806
+78,-fomit-frame-pointer -floop-block -floop-interchange -flto,40.07,1.00424257549289
+88,-floop-interchange -floop-strip-mine -flto,40.07,1.00424257549289
+72,-floop-interchange -flto,40.06,1.00449326010984
+84,-floop-block -floop-strip-mine -flto,40.05,1.00474406991261
+8,-floop-interchange,40.04,1.00499500499501
+70,-fomit-frame-pointer -floop-block -flto,40.01,1.00574856285929
+12,-floop-block -floop-interchange,40,1.006
+14,-fomit-frame-pointer -floop-block -floop-interchange,40,1.006
+16,-floop-strip-mine,39.97,1.00675506629972
+24,-floop-interchange -floop-strip-mine,39.96,1.00700700700701
+6,-fomit-frame-pointer -floop-block,39.95,1.0072590738423
+18,-fomit-frame-pointer -floop-strip-mine,39.92,1.00801603206413
+22,-fomit-frame-pointer -floop-block -floop-strip-mine,39.89,1.00877412885435
+2,-fomit-frame-pointer,39.88,1.00902708124373
+66,-fomit-frame-pointer -flto,39.88,1.00902708124373
+4,-floop-block,39.85,1.00978670012547
+26,-fomit-frame-pointer -floop-interchange -floop-strip-mine,39.83,1.01029374843083
+28,-floop-block -floop-interchange -floop-strip-mine,39.83,1.01029374843083
+30,-fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine,39.83,1.01029374843083
+120,-floop-interchange -floop-strip-mine -funroll-loops -flto,39.7,1.01360201511335
+122,-fomit-frame-pointer -floop-interchange -floop-strip-mine -funroll-loops -flto,39.67,1.01436854045878
+98,-fomit-frame-pointer -funroll-loops -flto,39.57,1.01693201920647
+112,-floop-strip-mine -funroll-loops -flto,39.51,1.01847633510504
+106,-fomit-frame-pointer -floop-interchange -funroll-loops -flto,39.47,1.01950848745883
+104,-floop-interchange -funroll-loops -flto,39.42,1.02080162354135
+114,-fomit-frame-pointer -floop-strip-mine -funroll-loops -flto,39.36,1.02235772357724
+124,-floop-block -floop-interchange -floop-strip-mine -funroll-loops -flto,39.35,1.02261753494282
+100,-floop-block -funroll-loops -flto,39.33,1.02313755403
+96,-funroll-loops -flto,39.31,1.02365810226405
+44,-floop-block -floop-interchange -funroll-loops,39.3,1.02391857506361
+126,-fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -funroll-loops -flto,39.3,1.02391857506361
+108,-floop-block -floop-interchange -funroll-loops -flto,39.28,1.0244399185336
+110,-fomit-frame-pointer -floop-block -floop-interchange -funroll-loops -flto,39.28,1.0244399185336
+116,-floop-block -floop-strip-mine -funroll-loops -flto,39.27,1.02470078940667
+102,-fomit-frame-pointer -floop-block -funroll-loops -flto,39.26,1.02496179317371
+46,-fomit-frame-pointer -floop-block -floop-interchange -funroll-loops,39.22,1.02600713921469
+118,-fomit-frame-pointer -floop-block -floop-strip-mine -funroll-loops -flto,39.21,1.0262688089773
+62,-fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -funroll-loops,39.16,1.02757916241062
+60,-floop-block -floop-interchange -floop-strip-mine -funroll-loops,39.15,1.02784163473819
+32,-funroll-loops,39.13,1.02836698185535
+36,-floop-block -funroll-loops,39.1,1.02915601023018
+40,-floop-interchange -funroll-loops,39.09,1.02941928882067
+42,-fomit-frame-pointer -floop-interchange -funroll-loops,39.09,1.02941928882067
+58,-fomit-frame-pointer -floop-interchange -floop-strip-mine -funroll-loops,39.08,1.02968270214944
+34,-fomit-frame-pointer -funroll-loops,39.03,1.03100179349219
+38,-fomit-frame-pointer -floop-block -funroll-loops,39.03,1.03100179349219
+50,-fomit-frame-pointer -floop-strip-mine -funroll-loops,39.03,1.03100179349219
+52,-floop-block -floop-strip-mine -funroll-loops,39.01,1.03153037682645
+56,-floop-interchange -floop-strip-mine -funroll-loops,39.01,1.03153037682645
+48,-floop-strip-mine -funroll-loops,39,1.03179487179487
+54,-fomit-frame-pointer -floop-block -floop-strip-mine -funroll-loops,38.99,1.03205950243652
+83,-march=native -fomit-frame-pointer -floop-strip-mine -flto,37.22,1.08113917248791
+71,-march=native -fomit-frame-pointer -floop-block -flto,37.21,1.08142972319269
+75,-march=native -fomit-frame-pointer -floop-interchange -flto,37.16,1.08288482238967
+77,-march=native -floop-block -floop-interchange -flto,37.12,1.08405172413793
+79,-march=native -fomit-frame-pointer -floop-block -floop-interchange -flto,37.1,1.08463611859838
+73,-march=native -floop-interchange -flto,37.08,1.08522114347357
+81,-march=native -floop-strip-mine -flto,37.08,1.08522114347357
+85,-march=native -floop-block -floop-strip-mine -flto,37.06,1.08580679978413
+89,-march=native -floop-interchange -floop-strip-mine -flto,37.06,1.08580679978413
+95,-march=native -fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -flto,37.05,1.08609986504723
+7,-march=native -fomit-frame-pointer -floop-block,37.04,1.08639308855292
+67,-march=native -fomit-frame-pointer -flto,37.03,1.08668647042938
+93,-march=native -floop-block -floop-interchange -floop-strip-mine -flto,37.02,1.08698001080497
+87,-march=native -fomit-frame-pointer -floop-block -floop-strip-mine -flto,37.01,1.08727370980816
+9,-march=native -floop-interchange,37,1.08756756756757
+13,-march=native -floop-block -floop-interchange,37,1.08756756756757
+5,-march=native -floop-block,36.97,1.08845009467136
+15,-march=native -fomit-frame-pointer -floop-block -floop-interchange,36.96,1.08874458874459
+91,-march=native -fomit-frame-pointer -floop-interchange -floop-strip-mine -flto,36.95,1.08903924221922
+11,-march=native -fomit-frame-pointer -floop-interchange,36.93,1.0896290278906
+65,-march=native -flto,36.93,1.0896290278906
+69,-march=native -floop-block -flto,36.92,1.0899241603467
+1,-march=native,36.91,1.09021945272284
+23,-march=native -fomit-frame-pointer -floop-block -floop-strip-mine,36.91,1.09021945272284
+31,-march=native -fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine,36.88,1.09110629067245
+17,-march=native -floop-strip-mine,36.86,1.09169831795985
+29,-march=native -floop-block -floop-interchange -floop-strip-mine,36.84,1.09229098805646
+97,-march=native -funroll-loops -flto,36.84,1.09229098805646
+127,-march=native -fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -funroll-loops -flto,36.84,1.09229098805646
+117,-march=native -floop-block -floop-strip-mine -funroll-loops -flto,36.83,1.09258756448547
+123,-march=native -fomit-frame-pointer -floop-interchange -floop-strip-mine -funroll-loops -flto,36.83,1.09258756448547
+21,-march=native -floop-block -floop-strip-mine,36.81,1.09318120076066
+103,-march=native -fomit-frame-pointer -floop-block -funroll-loops -flto,36.81,1.09318120076066
+25,-march=native -floop-interchange -floop-strip-mine,36.8,1.09347826086957
+3,-march=native -fomit-frame-pointer,36.79,1.09377548246806
+27,-march=native -fomit-frame-pointer -floop-interchange -floop-strip-mine,36.78,1.09407286568787
+121,-march=native -floop-interchange -floop-strip-mine -funroll-loops -flto,36.78,1.09407286568787
+19,-march=native -fomit-frame-pointer -floop-strip-mine,36.75,1.09496598639456
+111,-march=native -fomit-frame-pointer -floop-block -floop-interchange -funroll-loops -flto,36.75,1.09496598639456
+113,-march=native -floop-strip-mine -funroll-loops -flto,36.75,1.09496598639456
+115,-march=native -fomit-frame-pointer -floop-strip-mine -funroll-loops -flto,36.75,1.09496598639456
+125,-march=native -floop-block -floop-interchange -floop-strip-mine -funroll-loops -flto,36.75,1.09496598639456
+109,-march=native -floop-block -floop-interchange -funroll-loops -flto,36.73,1.09556221072693
+107,-march=native -fomit-frame-pointer -floop-interchange -funroll-loops -flto,36.72,1.0958605664488
+101,-march=native -floop-block -funroll-loops -flto,36.7,1.09645776566757
+119,-march=native -fomit-frame-pointer -floop-block -floop-strip-mine -funroll-loops -flto,36.68,1.09705561613959
+105,-march=native -floop-interchange -funroll-loops -flto,36.67,1.09735478592855
+99,-march=native -fomit-frame-pointer -funroll-loops -flto,36.64,1.09825327510917
+61,-march=native -floop-block -floop-interchange -floop-strip-mine -funroll-loops,36.63,1.0985530985531
+63,-march=native -fomit-frame-pointer -floop-block -floop-interchange -floop-strip-mine -funroll-loops,36.63,1.0985530985531
+59,-march=native -fomit-frame-pointer -floop-interchange -floop-strip-mine -funroll-loops,36.6,1.09945355191257
+55,-march=native -fomit-frame-pointer -floop-block -floop-strip-mine -funroll-loops,36.59,1.09975403115605
+43,-march=native -fomit-frame-pointer -floop-interchange -funroll-loops,36.57,1.10035548263604
+39,-march=native -fomit-frame-pointer -floop-block -funroll-loops,36.54,1.10125889436234
+35,-march=native -fomit-frame-pointer -funroll-loops,36.52,1.10186199342826
+37,-march=native -floop-block -funroll-loops,36.52,1.10186199342826
+51,-march=native -fomit-frame-pointer -floop-strip-mine -funroll-loops,36.51,1.10216379074226
+57,-march=native -floop-interchange -floop-strip-mine -funroll-loops,36.51,1.10216379074226
+45,-march=native -floop-block -floop-interchange -funroll-loops,36.5,1.10246575342466
+33,-march=native -funroll-loops,36.49,1.1027678816114
+49,-march=native -floop-strip-mine -funroll-loops,36.49,1.1027678816114
+53,-march=native -floop-block -floop-strip-mine -funroll-loops,36.49,1.1027678816114
+47,-march=native -fomit-frame-pointer -floop-block -floop-interchange -funroll-loops,36.47,1.1033726350425
+41,-march=native -floop-interchange -funroll-loops,36.46,1.10367526055952
+0,no flag - reference,40.24,1

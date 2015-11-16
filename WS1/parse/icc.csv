@@ -1,0 +1,17 @@
+id,flags,runtime,speedup
+8,-ipo,40.86,0.913852178169359
+12,-unroll -ipo,40.61,0.919477961093327
+13,-march=native -unroll -ipo,38.79,0.962619231760763
+9,-march=native -ipo,38.71,0.964608628261431
+15,-march=native -xHost -unroll -ipo,38.63,0.966606264561222
+14,-xHost -unroll -ipo,38.62,0.96685655100984
+10,-xHost -ipo,38.59,0.967608188649909
+11,-march=native -xHost -ipo,38.53,0.969114975343888
+4,-unroll,37.15,1.00511440107672
+1,-march=native,34.44,1.08420441347271
+6,-xHost -unroll,34.39,1.08578075021809
+2,-xHost,34.35,1.08704512372635
+3,-march=native -xHost,34.32,1.08799533799534
+7,-march=native -xHost -unroll,34.32,1.08799533799534
+5,-march=native -unroll,34.27,1.08958272541582
+0,no flag - reference,37.34,1
