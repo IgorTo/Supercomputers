@@ -1,0 +1,45 @@
+5.1.2
+- Was linear scalability achieved?
+No, linear scalability was not achieved.
+
+- On which thread-count was the maximum performance achieved?
+In sense of the time spent per one element, the best performance of OpenMP was when 
+we used 16 threads.
+
+5.2.2
+
+- What are the valid combinations of processes and threads?
+If we use MPI, we have to be careful. The Lulesh itself govern the number of processes over here. Lulesh demands that
+the number of processes is a cube of integer. Due to the architecture of SuperMUC which provide 16 cores per thin node we can only use 1 or 8 processes.
+
+- Was linear scalability achieved?
+No, linear scalabilty is not achieved
+
+- On which process count was the maximum performance achieved?
+The maximum performance (time per element)  was achieved when using 8 processes.
+
+- How does the performance compare to the results achieved with OpenMP in section 5.1?
+The amount of time spent per one element is better when using OpenMP if we consider the case of 8 threads versus 8 processes. However, 
+when only 1 process or thread was used, MPI produced a better result.
+
+5.3.2
+
+- What are the valied combinations of processes and threads?
+
+SuperMUC thin nodes have 16 cores in total. The combination of processes and threads depends on the technique that we are using.
+If we use both, MPI and OpenMP together, we are limited by SuperMUC's 16 cores and Lulesh's processes rules.
+The product of MPI processes and OpenMP threads must not exceed 16 and we can only use cubes of integers for MPI processes. That means 
+that there are 2 valid combinations: 1 process and 16 threads, 8 processes and 2 threads.
+
+
+- Was linear scalability achieved?
+No, linear scalability was not achieved in any of the three cases.
+
+- On which combination of proesses and threads was the maximum performance achieved?
+The maximum performance was achieved with 16 threads and 1 process. We would have never guessed that.
+
+- How does the performance compare to the results achieved with OpenMP in section 5.1 and with MPI in section 5.2?
+Performance of the hybrid technique with 16 threads and 1 process is the fastest among all of the techniques. It is approximately 1.5 times faster than the fastest case 
+of MPI and OpenMP.
+
+
