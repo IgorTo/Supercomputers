@@ -1,20 +1,33 @@
+### Intel compiler used with -O3 flag only!
+
 Flat profile:
 
 Each sample counts as 0.01 seconds.
   %   cumulative   self              self     total           
- time   seconds   seconds    calls  ns/call  ns/call  name    
- 71.34      8.86     8.86                             CalcHourglassControlForElems(Domain&, double*, double)
- 22.54     11.66     2.80                             CalcKinematicsForElems(Domain&, double*, double, int)
-  4.83     12.26     0.60 25191000    23.82    23.82  CalcElemVolume(double const*, double const*, double const*)
-  1.29     12.42     0.16                             std::vector<double, std::allocator<double> >::resize(unsigned long, double)
-  0.00     12.42     0.00       25     0.00     0.00  std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&)
-  0.00     12.42     0.00       11     0.00     0.00  std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&)
-  0.00     12.42     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z14CalcElemVolumePKdS0_S0_
-  0.00     12.42     0.00        1     0.00     0.00  Domain::SetupCommBuffers(int)
-  0.00     12.42     0.00        1     0.00     0.00  Domain::CreateRegionIndexSets(int, int)
-  0.00     12.42     0.00        1     0.00     0.00  Domain::SetupBoundaryConditions(int)
-  0.00     12.42     0.00        1     0.00     0.00  Domain::SetupElementConnectivities(int)
-  0.00     12.42     0.00        1     0.00     0.00  Domain::BuildMesh(int, int, int)
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 29.32     10.46    10.46    10252     1.02     1.02  EvalEOSForElems(Domain&, double*, int, int*, int)
+ 19.65     17.47     7.01      932     7.52    13.17  CalcHourglassControlForElems(Domain&, double*, double)
+ 14.75     22.73     5.26      932     5.64     5.64  CalcFBHourglassForceForElems(Domain&, double*, double*, double*, double*, double*, double*, double*, double, int, int)
+ 11.49     26.83     4.10      932     4.40     4.40  CalcKinematicsForElems(Domain&, double*, double, int)
+  9.25     30.13     3.30      932     3.54     3.54  IntegrateStressForElems(Domain&, double*, double*, double*, double*, int, int)
+  5.49     32.09     1.96      932     2.10     2.10  CalcMonotonicQGradientsForElems(Domain&, double*)
+  4.43     33.67     1.58                             main
+  3.42     34.89     1.22      932     1.31     3.62  CalcQForElems(Domain&, double*)
+  0.81     35.18     0.29                             cbrt.L
+  0.64     35.41     0.23     5616     0.04     0.04  std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&)
+  0.34     35.53     0.12      932     0.13     4.57  CalcLagrangeElements(Domain&, double*)
+  0.34     35.65     0.12                             __intel_memset
+  0.06     35.67     0.02                             cbrt
+  0.00     35.67     0.00    27001     0.00     0.00  CalcElemVolume(double const*, double const*, double const*)
+  0.00     35.67     0.00       35     0.00     0.00  std::vector<double, std::allocator<double> >::vector()
+  0.00     35.67     0.00       11     0.00     0.00  std::vector<int, std::allocator<int> >::vector()
+  0.00     35.67     0.00       10     0.00     0.00  std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&)
+  0.00     35.67     0.00        1     0.00     0.00  InitMeshDecomp(int, int, int*, int*, int*, int*)
+  0.00     35.67     0.00        1     0.00     0.00  ParseCommandLineOptions(int, char**, int, cmdLineOpts*)
+  0.00     35.67     0.00        1     0.00     0.00  VerifyAndWriteFinalOutput(double, Domain&, int, int)
+  0.00     35.67     0.00        1     0.00     0.49  Domain::AllocateElemPersistent(int)
+  0.00     35.67     0.00        1     0.00     0.49  Domain::AllocateNodePersistent(int)
+  0.00     35.67     0.00        1     0.00     0.98  Domain::Domain(int, int, int, int, int, int, int, int, int)
 
  %         the percentage of the total running time of the
 time       program used by this function.
@@ -46,59 +59,105 @@ name       the name of the function.  This is the minor sort
 		     Call graph (explanation follows)
 
 
-granularity: each sample hit covers 4 byte(s) for 0.08% of 12.42 seconds
+granularity: each sample hit covers 4 byte(s) for 0.03% of 35.67 seconds
 
 index % time    self  children    called     name
                                                  <spontaneous>
-[1]     71.3    8.86    0.00                 CalcHourglassControlForElems(Domain&, double*, double) [1]
+[1]     98.8    1.58   33.66                 main [1]
+                7.01    5.26     932/932         CalcHourglassControlForElems(Domain&, double*, double) [2]
+               10.46    0.00   10252/10252       EvalEOSForElems(Domain&, double*, int, int*, int) [3]
+                0.12    4.14     932/932         CalcLagrangeElements(Domain&, double*) [5]
+                1.22    2.15     932/932         CalcQForElems(Domain&, double*) [7]
+                3.30    0.00     932/932         IntegrateStressForElems(Domain&, double*, double*, double*, double*, int, int) [8]
+                0.00    0.00       1/1           Domain::Domain(int, int, int, int, int, int, int, int, int) [14]
+                0.00    0.00       1/1           ParseCommandLineOptions(int, char**, int, cmdLineOpts*) [37]
+                0.00    0.00       1/1           InitMeshDecomp(int, int, int*, int*, int*, int*) [36]
+                0.00    0.00       1/1           VerifyAndWriteFinalOutput(double, Domain&, int, int) [38]
+-----------------------------------------------
+                7.01    5.26     932/932         main [1]
+[2]     34.4    7.01    5.26     932         CalcHourglassControlForElems(Domain&, double*, double) [2]
+                5.26    0.00     932/932         CalcFBHourglassForceForElems(Domain&, double*, double*, double*, double*, double*, double*, double*, double, int, int) [4]
+-----------------------------------------------
+               10.46    0.00   10252/10252       main [1]
+[3]     29.3   10.46    0.00   10252         EvalEOSForElems(Domain&, double*, int, int*, int) [3]
+-----------------------------------------------
+                5.26    0.00     932/932         CalcHourglassControlForElems(Domain&, double*, double) [2]
+[4]     14.7    5.26    0.00     932         CalcFBHourglassForceForElems(Domain&, double*, double*, double*, double*, double*, double*, double*, double, int, int) [4]
+-----------------------------------------------
+                0.12    4.14     932/932         main [1]
+[5]     11.9    0.12    4.14     932         CalcLagrangeElements(Domain&, double*) [5]
+                4.10    0.00     932/932         CalcKinematicsForElems(Domain&, double*, double, int) [6]
+                0.04    0.00     932/5616        std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&) [11]
+-----------------------------------------------
+                4.10    0.00     932/932         CalcLagrangeElements(Domain&, double*) [5]
+[6]     11.5    4.10    0.00     932         CalcKinematicsForElems(Domain&, double*, double, int) [6]
+-----------------------------------------------
+                1.22    2.15     932/932         main [1]
+[7]      9.5    1.22    2.15     932         CalcQForElems(Domain&, double*) [7]
+                1.96    0.00     932/932         CalcMonotonicQGradientsForElems(Domain&, double*) [9]
+                0.19    0.00    4660/5616        std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&) [11]
+-----------------------------------------------
+                3.30    0.00     932/932         main [1]
+[8]      9.3    3.30    0.00     932         IntegrateStressForElems(Domain&, double*, double*, double*, double*, int, int) [8]
+-----------------------------------------------
+                1.96    0.00     932/932         CalcQForElems(Domain&, double*) [7]
+[9]      5.5    1.96    0.00     932         CalcMonotonicQGradientsForElems(Domain&, double*) [9]
 -----------------------------------------------
                                                  <spontaneous>
-[2]     27.4    2.80    0.60                 CalcKinematicsForElems(Domain&, double*, double, int) [2]
-                0.60    0.00 25164000/25191000     CalcElemVolume(double const*, double const*, double const*) [3]
+[10]     0.8    0.29    0.00                 cbrt.L [10]
 -----------------------------------------------
-                0.00    0.00   27000/25191000     Domain::Domain(int, int, int, int, int, int, int, int, int) [5]
-                0.60    0.00 25164000/25191000     CalcKinematicsForElems(Domain&, double*, double, int) [2]
-[3]      4.8    0.60    0.00 25191000         CalcElemVolume(double const*, double const*, double const*) [3]
------------------------------------------------
-                                                 <spontaneous>
-[4]      1.3    0.16    0.00                 std::vector<double, std::allocator<double> >::resize(unsigned long, double) [4]
+                0.00    0.00      12/5616        Domain::AllocateNodePersistent(int) [16]
+                0.00    0.00      12/5616        Domain::AllocateElemPersistent(int) [15]
+                0.04    0.00     932/5616        CalcLagrangeElements(Domain&, double*) [5]
+                0.19    0.00    4660/5616        CalcQForElems(Domain&, double*) [7]
+[11]     0.6    0.23    0.00    5616         std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&) [11]
 -----------------------------------------------
                                                  <spontaneous>
-[5]      0.0    0.00    0.00                 Domain::Domain(int, int, int, int, int, int, int, int, int) [5]
-                0.00    0.00   27000/25191000     CalcElemVolume(double const*, double const*, double const*) [3]
-                0.00    0.00      25/25          std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&) [14]
-                0.00    0.00       8/11          std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&) [15]
-                0.00    0.00       1/1           Domain::SetupCommBuffers(int) [17]
-                0.00    0.00       1/1           Domain::BuildMesh(int, int, int) [21]
-                0.00    0.00       1/1           Domain::CreateRegionIndexSets(int, int) [18]
-                0.00    0.00       1/1           Domain::SetupElementConnectivities(int) [20]
-                0.00    0.00       1/1           Domain::SetupBoundaryConditions(int) [19]
+[12]     0.3    0.12    0.00                 __intel_memset [12]
 -----------------------------------------------
-                0.00    0.00      25/25          Domain::Domain(int, int, int, int, int, int, int, int, int) [5]
-[14]     0.0    0.00    0.00      25         std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&) [14]
+                                                 <spontaneous>
+[13]     0.1    0.02    0.00                 cbrt [13]
 -----------------------------------------------
-                0.00    0.00       3/11          Domain::SetupCommBuffers(int) [17]
-                0.00    0.00       8/11          Domain::Domain(int, int, int, int, int, int, int, int, int) [5]
-[15]     0.0    0.00    0.00      11         std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&) [15]
+                0.00    0.00       1/1           main [1]
+[14]     0.0    0.00    0.00       1         Domain::Domain(int, int, int, int, int, int, int, int, int) [14]
+                0.00    0.00       1/1           Domain::AllocateElemPersistent(int) [15]
+                0.00    0.00       1/1           Domain::AllocateNodePersistent(int) [16]
+                0.00    0.00   27000/27001       CalcElemVolume(double const*, double const*, double const*) [32]
+                0.00    0.00      35/35          std::vector<double, std::allocator<double> >::vector() [33]
+                0.00    0.00      11/11          std::vector<int, std::allocator<int> >::vector() [34]
+                0.00    0.00       3/10          std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&) [35]
 -----------------------------------------------
-                0.00    0.00       1/1           __do_global_ctors_aux [29]
-[16]     0.0    0.00    0.00       1         _GLOBAL__sub_I__Z14CalcElemVolumePKdS0_S0_ [16]
+                0.00    0.00       1/1           Domain::Domain(int, int, int, int, int, int, int, int, int) [14]
+[15]     0.0    0.00    0.00       1         Domain::AllocateElemPersistent(int) [15]
+                0.00    0.00      12/5616        std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&) [11]
+                0.00    0.00       7/10          std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&) [35]
 -----------------------------------------------
-                0.00    0.00       1/1           Domain::Domain(int, int, int, int, int, int, int, int, int) [5]
-[17]     0.0    0.00    0.00       1         Domain::SetupCommBuffers(int) [17]
-                0.00    0.00       3/11          std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&) [15]
+                0.00    0.00       1/1           Domain::Domain(int, int, int, int, int, int, int, int, int) [14]
+[16]     0.0    0.00    0.00       1         Domain::AllocateNodePersistent(int) [16]
+                0.00    0.00      12/5616        std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&) [11]
 -----------------------------------------------
-                0.00    0.00       1/1           Domain::Domain(int, int, int, int, int, int, int, int, int) [5]
-[18]     0.0    0.00    0.00       1         Domain::CreateRegionIndexSets(int, int) [18]
+                0.00    0.00       1/27001       __do_global_ctors_aux [58]
+                0.00    0.00   27000/27001       Domain::Domain(int, int, int, int, int, int, int, int, int) [14]
+[32]     0.0    0.00    0.00   27001         CalcElemVolume(double const*, double const*, double const*) [32]
 -----------------------------------------------
-                0.00    0.00       1/1           Domain::Domain(int, int, int, int, int, int, int, int, int) [5]
-[19]     0.0    0.00    0.00       1         Domain::SetupBoundaryConditions(int) [19]
+                0.00    0.00      35/35          Domain::Domain(int, int, int, int, int, int, int, int, int) [14]
+[33]     0.0    0.00    0.00      35         std::vector<double, std::allocator<double> >::vector() [33]
 -----------------------------------------------
-                0.00    0.00       1/1           Domain::Domain(int, int, int, int, int, int, int, int, int) [5]
-[20]     0.0    0.00    0.00       1         Domain::SetupElementConnectivities(int) [20]
+                0.00    0.00      11/11          Domain::Domain(int, int, int, int, int, int, int, int, int) [14]
+[34]     0.0    0.00    0.00      11         std::vector<int, std::allocator<int> >::vector() [34]
 -----------------------------------------------
-                0.00    0.00       1/1           Domain::Domain(int, int, int, int, int, int, int, int, int) [5]
-[21]     0.0    0.00    0.00       1         Domain::BuildMesh(int, int, int) [21]
+                0.00    0.00       3/10          Domain::Domain(int, int, int, int, int, int, int, int, int) [14]
+                0.00    0.00       7/10          Domain::AllocateElemPersistent(int) [15]
+[35]     0.0    0.00    0.00      10         std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&) [35]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[36]     0.0    0.00    0.00       1         InitMeshDecomp(int, int, int*, int*, int*, int*) [36]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[37]     0.0    0.00    0.00       1         ParseCommandLineOptions(int, char**, int, cmdLineOpts*) [37]
+-----------------------------------------------
+                0.00    0.00       1/1           main [1]
+[38]     0.0    0.00    0.00       1         VerifyAndWriteFinalOutput(double, Domain&, int, int) [38]
 -----------------------------------------------
 
  This table describes the call tree of the program, and was sorted by
@@ -186,7 +245,11 @@ index % time    self  children    called     name
 
 Index by function name
 
-  [16] _GLOBAL__sub_I__Z14CalcElemVolumePKdS0_S0_ [17] Domain::SetupCommBuffers(int) [21] Domain::BuildMesh(int, int, int)
-   [3] CalcElemVolume(double const*, double const*, double const*) [18] Domain::CreateRegionIndexSets(int, int) [14] std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&)
-   [2] CalcKinematicsForElems(Domain&, double*, double, int) [19] Domain::SetupBoundaryConditions(int) [4] std::vector<double, std::allocator<double> >::resize(unsigned long, double)
-   [1] CalcHourglassControlForElems(Domain&, double*, double) [20] Domain::SetupElementConnectivities(int) [15] std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&)
+   [7] CalcQForElems(Domain&, double*) [38] VerifyAndWriteFinalOutput(double, Domain&, int, int) [33] std::vector<double, std::allocator<double> >::vector()
+  [32] CalcElemVolume(double const*, double const*, double const*) [4] CalcFBHourglassForceForElems(Domain&, double*, double*, double*, double*, double*, double*, double*, double, int, int) [35] std::vector<int, std::allocator<int> >::_M_fill_insert(__gnu_cxx::__normal_iterator<int*, std::vector<int, std::allocator<int> > >, unsigned long, int const&)
+  [36] InitMeshDecomp(int, int, int*, int*, int*, int*) [2] CalcHourglassControlForElems(Domain&, double*, double) [34] std::vector<int, std::allocator<int> >::vector()
+   [3] EvalEOSForElems(Domain&, double*, int, int*, int) [9] CalcMonotonicQGradientsForElems(Domain&, double*) [12] __intel_memset
+   [5] CalcLagrangeElements(Domain&, double*) [15] Domain::AllocateElemPersistent(int) [13] cbrt
+   [6] CalcKinematicsForElems(Domain&, double*, double, int) [16] Domain::AllocateNodePersistent(int) [10] cbrt.L
+   [8] IntegrateStressForElems(Domain&, double*, double*, double*, double*, int, int) [14] Domain::Domain(int, int, int, int, int, int, int, int, int) [1] main
+  [37] ParseCommandLineOptions(int, char**, int, cmdLineOpts*) [11] std::vector<double, std::allocator<double> >::_M_fill_insert(__gnu_cxx::__normal_iterator<double*, std::vector<double, std::allocator<double> > >, unsigned long, double const&)
