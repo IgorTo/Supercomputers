@@ -1,0 +1,2003 @@
+Function main in lulesh.cc
+   1  /*
+   2    This is a Version 2.0 MPI + OpenMP implementation of LULESH
+   3  
+   4                   Copyright (c) 2010-2013.
+   5        Lawrence Livermore National Security, LLC.
+   6  Produced at the Lawrence Livermore National Laboratory.
+   7                    LLNL-CODE-461231
+   8                  All rights reserved.
+   9  
+  10  This file is part of LULESH, Version 2.0.
+  11  Please also read this link -- http://www.opensource.org/licenses/index.php
+  12  
+  13  //////////////
+  14  DIFFERENCES BETWEEN THIS VERSION (2.x) AND EARLIER VERSIONS:
+  15  * Addition of regions to make work more representative of multi-material codes
+  16  * Default size of each domain is 30^3 (27000 elem) instead of 45^3. This is
+  17    more representative of our actual working set sizes
+  18  * Single source distribution supports pure serial, pure OpenMP, MPI-only, 
+  19    and MPI+OpenMP
+  20  * Addition of ability to visualize the mesh using VisIt 
+  21    https://wci.llnl.gov/codes/visit/download.html
+  22  * Various command line options (see ./lulesh2.0 -h)
+  23   -q              : quiet mode - suppress stdout
+  24   -i <iterations> : number of cycles to run
+  25   -s <size>       : length of cube mesh along side
+  26   -r <numregions> : Number of distinct regions (def: 11)
+  27   -b <balance>    : Load balance between regions of a domain (def: 1)
+  28   -c <cost>       : Extra cost of more expensive regions (def: 1)
+  29   -f <filepieces> : Number of file parts for viz output (def: np/9)
+  30   -p              : Print out progress
+  31   -v              : Output viz file (requires compiling with -DVIZ_MESH
+  32   -h              : This message
+  33  
+  34   printf("Usage: %s [opts]\n", execname);
+  35        printf(" where [opts] is one or more of:\n");
+  36        printf(" -q              : quiet mode - suppress all stdout\n");
+  37        printf(" -i <iterations> : number of cycles to run\n");
+  38        printf(" -s <size>       : length of cube mesh along side\n");
+  39        printf(" -r <numregions> : Number of distinct regions (def: 11)\n");
+  40        printf(" -b <balance>    : Load balance between regions of a domain (def: 1)\n");
+  41        printf(" -c <cost>       : Extra cost of more expensive regions (def: 1)\n");
+  42        printf(" -f <numfiles>   : Number of files to split viz dump into (def: (np+10)/9)\n");
+  43        printf(" -p              : Print out progress\n");
+  44        printf(" -v              : Output viz file (requires compiling with -DVIZ_MESH\n");
+  45        printf(" -h              : This message\n");
+  46        printf("\n\n");
+  47  
+  48  *Notable changes in LULESH 2.0
+  49  
+  50  * Split functionality into different files
+  51  lulesh.cc - where most (all?) of the timed functionality lies
+  52  lulesh-comm.cc - MPI functionality
+  53  lulesh-init.cc - Setup code
+  54  lulesh-viz.cc  - Support for visualization option
+  55  lulesh-util.cc - Non-timed functions
+  56  *
+  57  * The concept of "regions" was added, although every region is the same ideal
+  58  *    gas material, and the same sedov blast wave problem is still the only
+  59  *    problem its hardcoded to solve.
+  60  * Regions allow two things important to making this proxy app more representative:
+  61  *   Four of the LULESH routines are now performed on a region-by-region basis,
+  62  *     making the memory access patterns non-unit stride
+  63  *   Artificial load imbalances can be easily introduced that could impact
+  64  *     parallelization strategies.  
+  65  * The load balance flag changes region assignment.  Region number is raised to
+  66  *   the power entered for assignment probability.  Most likely regions changes
+  67  *   with MPI process id.
+  68  * The cost flag raises the cost of ~45% of the regions to evaluate EOS by the
+  69  *   entered multiple. The cost of 5% is 10x the entered multiple.
+  70  * MPI and OpenMP were added, and coalesced into a single version of the source
+  71  *   that can support serial builds, MPI-only, OpenMP-only, and MPI+OpenMP
+  72  * Added support to write plot files using "poor mans parallel I/O" when linked
+  73  *   with the silo library, which in turn can be read by VisIt.
+  74  * Enabled variable timestep calculation by default (courant condition), which
+  75  *   results in an additional reduction.
+  76  * Default domain (mesh) size reduced from 45^3 to 30^3
+  77  * Command line options to allow numerous test cases without needing to recompile
+  78  * Performance optimizations and code cleanup beyond LULESH 1.0
+  79  * Added a "Figure of Merit" calculation (elements solved per microsecond) and
+  80  *   output in support of using LULESH 2.0 for the 2017 CORAL procurement
+  81  *
+  82  * Possible Differences in Final Release (other changes possible)
+  83  *
+  84  * High Level mesh structure to allow data structure transformations
+  85  * Different default parameters
+  86  * Minor code performance changes and cleanup
+  87  
+  88  TODO in future versions
+  89  * Add reader for (truly) unstructured meshes, probably serial only
+  90  * CMake based build system
+  91  
+  92  //////////////
+  93  
+  94  Redistribution and use in source and binary forms, with or without
+  95  modification, are permitted provided that the following conditions
+  96  are met:
+  97  
+  98     * Redistributions of source code must retain the above copyright
+  99       notice, this list of conditions and the disclaimer below.
+ 100  
+ 101     * Redistributions in binary form must reproduce the above copyright
+ 102       notice, this list of conditions and the disclaimer (as noted below)
+ 103       in the documentation and/or other materials provided with the
+ 104       distribution.
+ 105  
+ 106     * Neither the name of the LLNS/LLNL nor the names of its contributors
+ 107       may be used to endorse or promote products derived from this software
+ 108       without specific prior written permission.
+ 109  
+ 110  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ 111  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ 112  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ 113  ARE DISCLAIMED. IN NO EVENT SHALL LAWRENCE LIVERMORE NATIONAL SECURITY, LLC,
+ 114  THE U.S. DEPARTMENT OF ENERGY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ 115  INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ 116  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ 117  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ 118  OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ 119  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ 120  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 121  
+ 122  
+ 123  Additional BSD Notice
+ 124  
+ 125  1. This notice is required to be provided under our contract with the U.S.
+ 126     Department of Energy (DOE). This work was produced at Lawrence Livermore
+ 127     National Laboratory under Contract No. DE-AC52-07NA27344 with the DOE.
+ 128  
+ 129  2. Neither the United States Government nor Lawrence Livermore National
+ 130     Security, LLC nor any of their employees, makes any warranty, express
+ 131     or implied, or assumes any liability or responsibility for the accuracy,
+ 132     completeness, or usefulness of any information, apparatus, product, or
+ 133     process disclosed, or represents that its use would not infringe
+ 134     privately-owned rights.
+ 135  
+ 136  3. Also, reference herein to any specific commercial products, process, or
+ 137     services by trade name, trademark, manufacturer or otherwise does not
+ 138     necessarily constitute or imply its endorsement, recommendation, or
+ 139     favoring by the United States Government or Lawrence Livermore National
+ 140     Security, LLC. The views and opinions of authors expressed herein do not
+ 141     necessarily state or reflect those of the United States Government or
+ 142     Lawrence Livermore National Security, LLC, and shall not be used for
+ 143     advertising or product endorsement purposes.
+ 144  
+ 145  */
+ 146  
+ 147  #include <climits>
+ 148  #include <vector>
+ 149  #include <math.h>
+ 150  #include <stdio.h>
+ 151  #include <stdlib.h>
+ 152  #include <string.h>
+ 153  #include <ctype.h>
+ 154  #include <time.h>
+ 155  #include <sys/time.h>
+ 156  #include <iostream>
+ 157  #include <unistd.h>
+ 158  
+ 159  #if _OPENMP
+ 160  # include <omp.h>
+ 161  #endif
+ 162  
+ 163  #include "lulesh.h"
+ 164  
+ 165  
+ 166  /*********************************/
+ 167  /* Data structure implementation */
+ 168  /*********************************/
+ 169  
+ 170  /* might want to add access methods so that memory can be */
+ 171  /* better managed, as in luleshFT */
+ 172  
+ 173  template <typename T>
+ 174  T *Allocate(size_t size)
+ 175  {
+ 176     return static_cast<T *>(malloc(sizeof(T)*size)) ;
+ 177  }
+ 178  
+ 179  template <typename T>
+ 180  void Release(T **ptr)
+ 181  {
+ 182     if (*ptr != NULL) {
+ 183        free(*ptr) ;
+ 184        *ptr = NULL ;
+ 185     }
+ 186  }
+ 187  
+ 188  
+ 189  
+ 190  /******************************************/
+ 191  
+ 192  /* Work Routines */
+ 193  
+ 194  static inline
+ 195  void TimeIncrement(Domain& domain)
+ 196  {
+ 197     Real_t targetdt = domain.stoptime() - domain.time() ;
+ 198  
+ 199     if ((domain.dtfixed() <= Real_t(0.0)) && (domain.cycle() != Int_t(0))) {
+ 200        Real_t ratio ;
+ 201        Real_t olddt = domain.deltatime() ;
+ 202  
+ 203        /* This will require a reduction in parallel */
+ 204        Real_t gnewdt = Real_t(1.0e+20) ;
+ 205        Real_t newdt ;
+ 206        if (domain.dtcourant() < gnewdt) {
+ 207           gnewdt = domain.dtcourant() / Real_t(2.0) ;
+ 208        }
+ 209        if (domain.dthydro() < gnewdt) {
+ 210           gnewdt = domain.dthydro() * Real_t(2.0) / Real_t(3.0) ;
+ 211        }
+ 212  
+ 213  #if USE_MPI      
+ 214        MPI_Allreduce(&gnewdt, &newdt, 1,
+ 215                      ((sizeof(Real_t) == 4) ? MPI_FLOAT : MPI_DOUBLE),
+ 216                      MPI_MIN, MPI_COMM_WORLD) ;
+ 217  #else
+ 218        newdt = gnewdt;
+ 219  #endif
+ 220        
+ 221        ratio = newdt / olddt ;
+ 222        if (ratio >= Real_t(1.0)) {
+ 223           if (ratio < domain.deltatimemultlb()) {
+ 224              newdt = olddt ;
+ 225           }
+ 226           else if (ratio > domain.deltatimemultub()) {
+ 227              newdt = olddt*domain.deltatimemultub() ;
+ 228           }
+ 229        }
+ 230  
+ 231        if (newdt > domain.dtmax()) {
+ 232           newdt = domain.dtmax() ;
+ 233        }
+ 234        domain.deltatime() = newdt ;
+ 235     }
+ 236  
+ 237     /* TRY TO PREVENT VERY SMALL SCALING ON THE NEXT CYCLE */
+ 238     if ((targetdt > domain.deltatime()) &&
+ 239         (targetdt < (Real_t(4.0) * domain.deltatime() / Real_t(3.0))) ) {
+ 240        targetdt = Real_t(2.0) * domain.deltatime() / Real_t(3.0) ;
+ 241     }
+ 242  
+ 243     if (targetdt < domain.deltatime()) {
+ 244        domain.deltatime() = targetdt ;
+ 245     }
+ 246  
+ 247     domain.time() += domain.deltatime() ;
+ 248  
+ 249     ++domain.cycle() ;
+ 250  }
+ 251  
+ 252  /******************************************/
+ 253  
+ 254  static inline
+ 255  void CollectDomainNodesToElemNodes(Domain &domain,
+ 256                                     const Index_t* elemToNode,
+ 257                                     Real_t elemX[8],
+ 258                                     Real_t elemY[8],
+ 259                                     Real_t elemZ[8])
+ 260  {
+ 261     Index_t nd0i = elemToNode[0] ;
+ 262     Index_t nd1i = elemToNode[1] ;
+ 263     Index_t nd2i = elemToNode[2] ;
+ 264     Index_t nd3i = elemToNode[3] ;
+ 265     Index_t nd4i = elemToNode[4] ;
+ 266     Index_t nd5i = elemToNode[5] ;
+ 267     Index_t nd6i = elemToNode[6] ;
+ 268     Index_t nd7i = elemToNode[7] ;
+ 269  
+ 270     elemX[0] = domain.x(nd0i);
+ 271     elemX[1] = domain.x(nd1i);
+ 272     elemX[2] = domain.x(nd2i);
+ 273     elemX[3] = domain.x(nd3i);
+ 274     elemX[4] = domain.x(nd4i);
+ 275     elemX[5] = domain.x(nd5i);
+ 276     elemX[6] = domain.x(nd6i);
+ 277     elemX[7] = domain.x(nd7i);
+ 278  
+ 279     elemY[0] = domain.y(nd0i);
+ 280     elemY[1] = domain.y(nd1i);
+ 281     elemY[2] = domain.y(nd2i);
+ 282     elemY[3] = domain.y(nd3i);
+ 283     elemY[4] = domain.y(nd4i);
+ 284     elemY[5] = domain.y(nd5i);
+ 285     elemY[6] = domain.y(nd6i);
+ 286     elemY[7] = domain.y(nd7i);
+ 287  
+ 288     elemZ[0] = domain.z(nd0i);
+ 289     elemZ[1] = domain.z(nd1i);
+ 290     elemZ[2] = domain.z(nd2i);
+ 291     elemZ[3] = domain.z(nd3i);
+ 292     elemZ[4] = domain.z(nd4i);
+ 293     elemZ[5] = domain.z(nd5i);
+ 294     elemZ[6] = domain.z(nd6i);
+ 295     elemZ[7] = domain.z(nd7i);
+ 296  
+ 297  }
+ 298  
+ 299  /******************************************/
+ 300  
+ 301  static inline
+ 302  void InitStressTermsForElems(Domain &domain,
+ 303                               Real_t *sigxx, Real_t *sigyy, Real_t *sigzz,
+ 304                               Index_t numElem)
+ 305  {
+ 306     //
+ 307     // pull in the stresses appropriate to the hydro integration
+ 308     //
+ 309  
+ 310  #pragma omp parallel for firstprivate(numElem)
+ 311     for (Index_t i = 0 ; i < numElem ; ++i){
+ 312        sigxx[i] = sigyy[i] = sigzz[i] =  - domain.p(i) - domain.q(i) ;
+ 313     }
+ 314  }
+ 315  
+ 316  /******************************************/
+ 317  
+ 318  static inline
+ 319  void CalcElemShapeFunctionDerivatives( Real_t const x[],
+ 320                                         Real_t const y[],
+ 321                                         Real_t const z[],
+ 322                                         Real_t b[][8],
+ 323                                         Real_t* const volume )
+ 324  {
+ 325    const Real_t x0 = x[0] ;   const Real_t x1 = x[1] ;
+ 326    const Real_t x2 = x[2] ;   const Real_t x3 = x[3] ;
+ 327    const Real_t x4 = x[4] ;   const Real_t x5 = x[5] ;
+ 328    const Real_t x6 = x[6] ;   const Real_t x7 = x[7] ;
+ 329  
+ 330    const Real_t y0 = y[0] ;   const Real_t y1 = y[1] ;
+ 331    const Real_t y2 = y[2] ;   const Real_t y3 = y[3] ;
+ 332    const Real_t y4 = y[4] ;   const Real_t y5 = y[5] ;
+ 333    const Real_t y6 = y[6] ;   const Real_t y7 = y[7] ;
+ 334  
+ 335    const Real_t z0 = z[0] ;   const Real_t z1 = z[1] ;
+ 336    const Real_t z2 = z[2] ;   const Real_t z3 = z[3] ;
+ 337    const Real_t z4 = z[4] ;   const Real_t z5 = z[5] ;
+ 338    const Real_t z6 = z[6] ;   const Real_t z7 = z[7] ;
+ 339  
+ 340    Real_t fjxxi, fjxet, fjxze;
+ 341    Real_t fjyxi, fjyet, fjyze;
+ 342    Real_t fjzxi, fjzet, fjzze;
+ 343    Real_t cjxxi, cjxet, cjxze;
+ 344    Real_t cjyxi, cjyet, cjyze;
+ 345    Real_t cjzxi, cjzet, cjzze;
+ 346  
+ 347    fjxxi = Real_t(.125) * ( (x6-x0) + (x5-x3) - (x7-x1) - (x4-x2) );
+ 348    fjxet = Real_t(.125) * ( (x6-x0) - (x5-x3) + (x7-x1) - (x4-x2) );
+ 349    fjxze = Real_t(.125) * ( (x6-x0) + (x5-x3) + (x7-x1) + (x4-x2) );
+ 350  
+ 351    fjyxi = Real_t(.125) * ( (y6-y0) + (y5-y3) - (y7-y1) - (y4-y2) );
+ 352    fjyet = Real_t(.125) * ( (y6-y0) - (y5-y3) + (y7-y1) - (y4-y2) );
+ 353    fjyze = Real_t(.125) * ( (y6-y0) + (y5-y3) + (y7-y1) + (y4-y2) );
+ 354  
+ 355    fjzxi = Real_t(.125) * ( (z6-z0) + (z5-z3) - (z7-z1) - (z4-z2) );
+ 356    fjzet = Real_t(.125) * ( (z6-z0) - (z5-z3) + (z7-z1) - (z4-z2) );
+ 357    fjzze = Real_t(.125) * ( (z6-z0) + (z5-z3) + (z7-z1) + (z4-z2) );
+ 358  
+ 359    /* compute cofactors */
+ 360    cjxxi =    (fjyet * fjzze) - (fjzet * fjyze);
+ 361    cjxet =  - (fjyxi * fjzze) + (fjzxi * fjyze);
+ 362    cjxze =    (fjyxi * fjzet) - (fjzxi * fjyet);
+ 363  
+ 364    cjyxi =  - (fjxet * fjzze) + (fjzet * fjxze);
+ 365    cjyet =    (fjxxi * fjzze) - (fjzxi * fjxze);
+ 366    cjyze =  - (fjxxi * fjzet) + (fjzxi * fjxet);
+ 367  
+ 368    cjzxi =    (fjxet * fjyze) - (fjyet * fjxze);
+ 369    cjzet =  - (fjxxi * fjyze) + (fjyxi * fjxze);
+ 370    cjzze =    (fjxxi * fjyet) - (fjyxi * fjxet);
+ 371  
+ 372    /* calculate partials :
+ 373       this need only be done for l = 0,1,2,3   since , by symmetry ,
+ 374       (6,7,4,5) = - (0,1,2,3) .
+ 375    */
+ 376    b[0][0] =   -  cjxxi  -  cjxet  -  cjxze;
+ 377    b[0][1] =      cjxxi  -  cjxet  -  cjxze;
+ 378    b[0][2] =      cjxxi  +  cjxet  -  cjxze;
+ 379    b[0][3] =   -  cjxxi  +  cjxet  -  cjxze;
+ 380    b[0][4] = -b[0][2];
+ 381    b[0][5] = -b[0][3];
+ 382    b[0][6] = -b[0][0];
+ 383    b[0][7] = -b[0][1];
+ 384  
+ 385    b[1][0] =   -  cjyxi  -  cjyet  -  cjyze;
+ 386    b[1][1] =      cjyxi  -  cjyet  -  cjyze;
+ 387    b[1][2] =      cjyxi  +  cjyet  -  cjyze;
+ 388    b[1][3] =   -  cjyxi  +  cjyet  -  cjyze;
+ 389    b[1][4] = -b[1][2];
+ 390    b[1][5] = -b[1][3];
+ 391    b[1][6] = -b[1][0];
+ 392    b[1][7] = -b[1][1];
+ 393  
+ 394    b[2][0] =   -  cjzxi  -  cjzet  -  cjzze;
+ 395    b[2][1] =      cjzxi  -  cjzet  -  cjzze;
+ 396    b[2][2] =      cjzxi  +  cjzet  -  cjzze;
+ 397    b[2][3] =   -  cjzxi  +  cjzet  -  cjzze;
+ 398    b[2][4] = -b[2][2];
+ 399    b[2][5] = -b[2][3];
+ 400    b[2][6] = -b[2][0];
+ 401    b[2][7] = -b[2][1];
+ 402  
+ 403    /* calculate jacobian determinant (volume) */
+ 404    *volume = Real_t(8.) * ( fjxet * cjxet + fjyet * cjyet + fjzet * cjzet);
+ 405  }
+ 406  
+ 407  /******************************************/
+ 408  
+ 409  static inline
+ 410  void SumElemFaceNormal(Real_t *normalX0, Real_t *normalY0, Real_t *normalZ0,
+ 411                         Real_t *normalX1, Real_t *normalY1, Real_t *normalZ1,
+ 412                         Real_t *normalX2, Real_t *normalY2, Real_t *normalZ2,
+ 413                         Real_t *normalX3, Real_t *normalY3, Real_t *normalZ3,
+ 414                         const Real_t x0, const Real_t y0, const Real_t z0,
+ 415                         const Real_t x1, const Real_t y1, const Real_t z1,
+ 416                         const Real_t x2, const Real_t y2, const Real_t z2,
+ 417                         const Real_t x3, const Real_t y3, const Real_t z3)
+ 418  {
+ 419     Real_t bisectX0 = Real_t(0.5) * (x3 + x2 - x1 - x0);
+ 420     Real_t bisectY0 = Real_t(0.5) * (y3 + y2 - y1 - y0);
+ 421     Real_t bisectZ0 = Real_t(0.5) * (z3 + z2 - z1 - z0);
+ 422     Real_t bisectX1 = Real_t(0.5) * (x2 + x1 - x3 - x0);
+ 423     Real_t bisectY1 = Real_t(0.5) * (y2 + y1 - y3 - y0);
+ 424     Real_t bisectZ1 = Real_t(0.5) * (z2 + z1 - z3 - z0);
+ 425     Real_t areaX = Real_t(0.25) * (bisectY0 * bisectZ1 - bisectZ0 * bisectY1);
+ 426     Real_t areaY = Real_t(0.25) * (bisectZ0 * bisectX1 - bisectX0 * bisectZ1);
+ 427     Real_t areaZ = Real_t(0.25) * (bisectX0 * bisectY1 - bisectY0 * bisectX1);
+ 428  
+ 429     *normalX0 += areaX;
+ 430     *normalX1 += areaX;
+ 431     *normalX2 += areaX;
+ 432     *normalX3 += areaX;
+ 433  
+ 434     *normalY0 += areaY;
+ 435     *normalY1 += areaY;
+ 436     *normalY2 += areaY;
+ 437     *normalY3 += areaY;
+ 438  
+ 439     *normalZ0 += areaZ;
+ 440     *normalZ1 += areaZ;
+ 441     *normalZ2 += areaZ;
+ 442     *normalZ3 += areaZ;
+ 443  }
+ 444  
+ 445  /******************************************/
+ 446  
+ 447  static inline
+ 448  void CalcElemNodeNormals(Real_t pfx[8],
+ 449                           Real_t pfy[8],
+ 450                           Real_t pfz[8],
+ 451                           const Real_t x[8],
+ 452                           const Real_t y[8],
+ 453                           const Real_t z[8])
+ 454  {
+ 455     for (Index_t i = 0 ; i < 8 ; ++i) {
+ 456        pfx[i] = Real_t(0.0);
+ 457        pfy[i] = Real_t(0.0);
+ 458        pfz[i] = Real_t(0.0);
+ 459     }
+ 460     /* evaluate face one: nodes 0, 1, 2, 3 */
+ 461     SumElemFaceNormal(&pfx[0], &pfy[0], &pfz[0],
+ 462                    &pfx[1], &pfy[1], &pfz[1],
+ 463                    &pfx[2], &pfy[2], &pfz[2],
+ 464                    &pfx[3], &pfy[3], &pfz[3],
+ 465                    x[0], y[0], z[0], x[1], y[1], z[1],
+ 466                    x[2], y[2], z[2], x[3], y[3], z[3]);
+ 467     /* evaluate face two: nodes 0, 4, 5, 1 */
+ 468     SumElemFaceNormal(&pfx[0], &pfy[0], &pfz[0],
+ 469                    &pfx[4], &pfy[4], &pfz[4],
+ 470                    &pfx[5], &pfy[5], &pfz[5],
+ 471                    &pfx[1], &pfy[1], &pfz[1],
+ 472                    x[0], y[0], z[0], x[4], y[4], z[4],
+ 473                    x[5], y[5], z[5], x[1], y[1], z[1]);
+ 474     /* evaluate face three: nodes 1, 5, 6, 2 */
+ 475     SumElemFaceNormal(&pfx[1], &pfy[1], &pfz[1],
+ 476                    &pfx[5], &pfy[5], &pfz[5],
+ 477                    &pfx[6], &pfy[6], &pfz[6],
+ 478                    &pfx[2], &pfy[2], &pfz[2],
+ 479                    x[1], y[1], z[1], x[5], y[5], z[5],
+ 480                    x[6], y[6], z[6], x[2], y[2], z[2]);
+ 481     /* evaluate face four: nodes 2, 6, 7, 3 */
+ 482     SumElemFaceNormal(&pfx[2], &pfy[2], &pfz[2],
+ 483                    &pfx[6], &pfy[6], &pfz[6],
+ 484                    &pfx[7], &pfy[7], &pfz[7],
+ 485                    &pfx[3], &pfy[3], &pfz[3],
+ 486                    x[2], y[2], z[2], x[6], y[6], z[6],
+ 487                    x[7], y[7], z[7], x[3], y[3], z[3]);
+ 488     /* evaluate face five: nodes 3, 7, 4, 0 */
+ 489     SumElemFaceNormal(&pfx[3], &pfy[3], &pfz[3],
+ 490                    &pfx[7], &pfy[7], &pfz[7],
+ 491                    &pfx[4], &pfy[4], &pfz[4],
+ 492                    &pfx[0], &pfy[0], &pfz[0],
+ 493                    x[3], y[3], z[3], x[7], y[7], z[7],
+ 494                    x[4], y[4], z[4], x[0], y[0], z[0]);
+ 495     /* evaluate face six: nodes 4, 7, 6, 5 */
+ 496     SumElemFaceNormal(&pfx[4], &pfy[4], &pfz[4],
+ 497                    &pfx[7], &pfy[7], &pfz[7],
+ 498                    &pfx[6], &pfy[6], &pfz[6],
+ 499                    &pfx[5], &pfy[5], &pfz[5],
+ 500                    x[4], y[4], z[4], x[7], y[7], z[7],
+ 501                    x[6], y[6], z[6], x[5], y[5], z[5]);
+ 502  }
+ 503  
+ 504  /******************************************/
+ 505  
+ 506  static inline
+ 507  void SumElemStressesToNodeForces( const Real_t B[][8],
+ 508                                    const Real_t stress_xx,
+ 509                                    const Real_t stress_yy,
+ 510                                    const Real_t stress_zz,
+ 511                                    Real_t fx[], Real_t fy[], Real_t fz[] )
+ 512  {
+ 513     for(Index_t i = 0; i < 8; i++) {
+ 514        fx[i] = -( stress_xx * B[0][i] );
+ 515        fy[i] = -( stress_yy * B[1][i]  );
+ 516        fz[i] = -( stress_zz * B[2][i] );
+ 517     }
+ 518  }
+ 519  
+ 520  /******************************************/
+ 521  
+ 522  static inline
+ 523  void IntegrateStressForElems( Domain &domain,
+ 524                                Real_t *sigxx, Real_t *sigyy, Real_t *sigzz,
+ 525                                Real_t *determ, Index_t numElem, Index_t numNode)
+ 526  {
+ 527  #if _OPENMP
+ 528     Index_t numthreads = omp_get_max_threads();
+ 529  #else
+ 530     Index_t numthreads = 1;
+ 531  #endif
+ 532  
+ 533     Index_t numElem8 = numElem * 8 ;
+ 534     Real_t *fx_elem;
+ 535     Real_t *fy_elem;
+ 536     Real_t *fz_elem;
+ 537     Real_t fx_local[8] ;
+ 538     Real_t fy_local[8] ;
+ 539     Real_t fz_local[8] ;
+ 540  
+ 541  
+ 542    if (numthreads > 1) {
+ 543       fx_elem = Allocate<Real_t>(numElem8) ;
+ 544       fy_elem = Allocate<Real_t>(numElem8) ;
+ 545       fz_elem = Allocate<Real_t>(numElem8) ;
+ 546    }
+ 547    // loop over all elements
+ 548  
+ 549  #pragma omp parallel for firstprivate(numElem)
+ 550    for( Index_t k=0 ; k<numElem ; ++k )
+ 551    {
+ 552      const Index_t* const elemToNode = domain.nodelist(k);
+ 553      Real_t B[3][8] ;// shape function derivatives
+ 554      Real_t x_local[8] ;
+ 555      Real_t y_local[8] ;
+ 556      Real_t z_local[8] ;
+ 557  
+ 558      // get nodal coordinates from global arrays and copy into local arrays.
+ 559      CollectDomainNodesToElemNodes(domain, elemToNode, x_local, y_local, z_local);
+ 560  
+ 561      // Volume calculation involves extra work for numerical consistency
+ 562      CalcElemShapeFunctionDerivatives(x_local, y_local, z_local,
+ 563                                           B, &determ[k]);
+ 564  
+ 565      CalcElemNodeNormals( B[0] , B[1], B[2],
+ 566                            x_local, y_local, z_local );
+ 567  
+ 568      if (numthreads > 1) {
+ 569         // Eliminate thread writing conflicts at the nodes by giving
+ 570         // each element its own copy to write to
+ 571         SumElemStressesToNodeForces( B, sigxx[k], sigyy[k], sigzz[k],
+ 572                                      &fx_elem[k*8],
+ 573                                      &fy_elem[k*8],
+ 574                                      &fz_elem[k*8] ) ;
+ 575      }
+ 576      else {
+ 577         SumElemStressesToNodeForces( B, sigxx[k], sigyy[k], sigzz[k],
+ 578                                      fx_local, fy_local, fz_local ) ;
+ 579  
+ 580         // copy nodal force contributions to global force arrray.
+ 581         for( Index_t lnode=0 ; lnode<8 ; ++lnode ) {
+ 582            Index_t gnode = elemToNode[lnode];
+ 583            domain.fx(gnode) += fx_local[lnode];
+ 584            domain.fy(gnode) += fy_local[lnode];
+ 585            domain.fz(gnode) += fz_local[lnode];
+ 586         }
+ 587      }
+ 588    }
+ 589  
+ 590    if (numthreads > 1) {
+ 591       // If threaded, then we need to copy the data out of the temporary
+ 592       // arrays used above into the final forces field
+ 593  #pragma omp parallel for firstprivate(numNode)
+ 594       for( Index_t gnode=0 ; gnode<numNode ; ++gnode )
+ 595       {
+ 596          Index_t count = domain.nodeElemCount(gnode) ;
+ 597          Index_t *cornerList = domain.nodeElemCornerList(gnode) ;
+ 598          Real_t fx_tmp = Real_t(0.0) ;
+ 599          Real_t fy_tmp = Real_t(0.0) ;
+ 600          Real_t fz_tmp = Real_t(0.0) ;
+ 601          for (Index_t i=0 ; i < count ; ++i) {
+ 602             Index_t elem = cornerList[i] ;
+ 603             fx_tmp += fx_elem[elem] ;
+ 604             fy_tmp += fy_elem[elem] ;
+ 605             fz_tmp += fz_elem[elem] ;
+ 606          }
+ 607          domain.fx(gnode) = fx_tmp ;
+ 608          domain.fy(gnode) = fy_tmp ;
+ 609          domain.fz(gnode) = fz_tmp ;
+ 610       }
+ 611       Release(&fz_elem) ;
+ 612       Release(&fy_elem) ;
+ 613       Release(&fx_elem) ;
+ 614    }
+ 615  }
+ 616  
+ 617  /******************************************/
+ 618  
+ 619  static inline
+ 620  void VoluDer(const Real_t x0, const Real_t x1, const Real_t x2,
+ 621               const Real_t x3, const Real_t x4, const Real_t x5,
+ 622               const Real_t y0, const Real_t y1, const Real_t y2,
+ 623               const Real_t y3, const Real_t y4, const Real_t y5,
+ 624               const Real_t z0, const Real_t z1, const Real_t z2,
+ 625               const Real_t z3, const Real_t z4, const Real_t z5,
+ 626               Real_t* dvdx, Real_t* dvdy, Real_t* dvdz)
+ 627  {
+ 628     const Real_t twelfth = Real_t(1.0) / Real_t(12.0) ;
+ 629  
+ 630     *dvdx =
+ 631        (y1 + y2) * (z0 + z1) - (y0 + y1) * (z1 + z2) +
+ 632        (y0 + y4) * (z3 + z4) - (y3 + y4) * (z0 + z4) -
+ 633        (y2 + y5) * (z3 + z5) + (y3 + y5) * (z2 + z5);
+ 634     *dvdy =
+ 635        - (x1 + x2) * (z0 + z1) + (x0 + x1) * (z1 + z2) -
+ 636        (x0 + x4) * (z3 + z4) + (x3 + x4) * (z0 + z4) +
+ 637        (x2 + x5) * (z3 + z5) - (x3 + x5) * (z2 + z5);
+ 638  
+ 639     *dvdz =
+ 640        - (y1 + y2) * (x0 + x1) + (y0 + y1) * (x1 + x2) -
+ 641        (y0 + y4) * (x3 + x4) + (y3 + y4) * (x0 + x4) +
+ 642        (y2 + y5) * (x3 + x5) - (y3 + y5) * (x2 + x5);
+ 643  
+ 644     *dvdx *= twelfth;
+ 645     *dvdy *= twelfth;
+ 646     *dvdz *= twelfth;
+ 647  }
+ 648  
+ 649  /******************************************/
+ 650  
+ 651  static inline
+ 652  void CalcElemVolumeDerivative(Real_t dvdx[8],
+ 653                                Real_t dvdy[8],
+ 654                                Real_t dvdz[8],
+ 655                                const Real_t x[8],
+ 656                                const Real_t y[8],
+ 657                                const Real_t z[8])
+ 658  {
+ 659     VoluDer(x[1], x[2], x[3], x[4], x[5], x[7],
+ 660             y[1], y[2], y[3], y[4], y[5], y[7],
+ 661             z[1], z[2], z[3], z[4], z[5], z[7],
+ 662             &dvdx[0], &dvdy[0], &dvdz[0]);
+ 663     VoluDer(x[0], x[1], x[2], x[7], x[4], x[6],
+ 664             y[0], y[1], y[2], y[7], y[4], y[6],
+ 665             z[0], z[1], z[2], z[7], z[4], z[6],
+ 666             &dvdx[3], &dvdy[3], &dvdz[3]);
+ 667     VoluDer(x[3], x[0], x[1], x[6], x[7], x[5],
+ 668             y[3], y[0], y[1], y[6], y[7], y[5],
+ 669             z[3], z[0], z[1], z[6], z[7], z[5],
+ 670             &dvdx[2], &dvdy[2], &dvdz[2]);
+ 671     VoluDer(x[2], x[3], x[0], x[5], x[6], x[4],
+ 672             y[2], y[3], y[0], y[5], y[6], y[4],
+ 673             z[2], z[3], z[0], z[5], z[6], z[4],
+ 674             &dvdx[1], &dvdy[1], &dvdz[1]);
+ 675     VoluDer(x[7], x[6], x[5], x[0], x[3], x[1],
+ 676             y[7], y[6], y[5], y[0], y[3], y[1],
+ 677             z[7], z[6], z[5], z[0], z[3], z[1],
+ 678             &dvdx[4], &dvdy[4], &dvdz[4]);
+ 679     VoluDer(x[4], x[7], x[6], x[1], x[0], x[2],
+ 680             y[4], y[7], y[6], y[1], y[0], y[2],
+ 681             z[4], z[7], z[6], z[1], z[0], z[2],
+ 682             &dvdx[5], &dvdy[5], &dvdz[5]);
+ 683     VoluDer(x[5], x[4], x[7], x[2], x[1], x[3],
+ 684             y[5], y[4], y[7], y[2], y[1], y[3],
+ 685             z[5], z[4], z[7], z[2], z[1], z[3],
+ 686             &dvdx[6], &dvdy[6], &dvdz[6]);
+ 687     VoluDer(x[6], x[5], x[4], x[3], x[2], x[0],
+ 688             y[6], y[5], y[4], y[3], y[2], y[0],
+ 689             z[6], z[5], z[4], z[3], z[2], z[0],
+ 690             &dvdx[7], &dvdy[7], &dvdz[7]);
+ 691  }
+ 692  
+ 693  /******************************************/
+ 694  
+ 695  static inline
+ 696  void CalcElemFBHourglassForce(Real_t *xd, Real_t *yd, Real_t *zd,  Real_t hourgam[][4],
+ 697                                Real_t coefficient,
+ 698                                Real_t *hgfx, Real_t *hgfy, Real_t *hgfz )
+ 699  {
+ 700     Real_t hxx[4];
+ 701     for(Index_t i = 0; i < 4; i++) {
+ 702        hxx[i] = hourgam[0][i] * xd[0] + hourgam[1][i] * xd[1] +
+ 703                 hourgam[2][i] * xd[2] + hourgam[3][i] * xd[3] +
+ 704                 hourgam[4][i] * xd[4] + hourgam[5][i] * xd[5] +
+ 705                 hourgam[6][i] * xd[6] + hourgam[7][i] * xd[7];
+ 706     }
+ 707     for(Index_t i = 0; i < 8; i++) {
+ 708        hgfx[i] = coefficient *
+ 709                  (hourgam[i][0] * hxx[0] + hourgam[i][1] * hxx[1] +
+ 710                   hourgam[i][2] * hxx[2] + hourgam[i][3] * hxx[3]);
+ 711     }
+ 712     for(Index_t i = 0; i < 4; i++) {
+ 713        hxx[i] = hourgam[0][i] * yd[0] + hourgam[1][i] * yd[1] +
+ 714                 hourgam[2][i] * yd[2] + hourgam[3][i] * yd[3] +
+ 715                 hourgam[4][i] * yd[4] + hourgam[5][i] * yd[5] +
+ 716                 hourgam[6][i] * yd[6] + hourgam[7][i] * yd[7];
+ 717     }
+ 718     for(Index_t i = 0; i < 8; i++) {
+ 719        hgfy[i] = coefficient *
+ 720                  (hourgam[i][0] * hxx[0] + hourgam[i][1] * hxx[1] +
+ 721                   hourgam[i][2] * hxx[2] + hourgam[i][3] * hxx[3]);
+ 722     }
+ 723     for(Index_t i = 0; i < 4; i++) {
+ 724        hxx[i] = hourgam[0][i] * zd[0] + hourgam[1][i] * zd[1] +
+ 725                 hourgam[2][i] * zd[2] + hourgam[3][i] * zd[3] +
+ 726                 hourgam[4][i] * zd[4] + hourgam[5][i] * zd[5] +
+ 727                 hourgam[6][i] * zd[6] + hourgam[7][i] * zd[7];
+ 728     }
+ 729     for(Index_t i = 0; i < 8; i++) {
+ 730        hgfz[i] = coefficient *
+ 731                  (hourgam[i][0] * hxx[0] + hourgam[i][1] * hxx[1] +
+ 732                   hourgam[i][2] * hxx[2] + hourgam[i][3] * hxx[3]);
+ 733     }
+ 734  }
+ 735  
+ 736  /******************************************/
+ 737  
+ 738  static inline
+ 739  void CalcFBHourglassForceForElems( Domain &domain,
+ 740                                     Real_t *determ,
+ 741                                     Real_t *x8n, Real_t *y8n, Real_t *z8n,
+ 742                                     Real_t *dvdx, Real_t *dvdy, Real_t *dvdz,
+ 743                                     Real_t hourg, Index_t numElem,
+ 744                                     Index_t numNode)
+ 745  {
+ 746  
+ 747  #if _OPENMP
+ 748     Index_t numthreads = omp_get_max_threads();
+ 749  #else
+ 750     Index_t numthreads = 1;
+ 751  #endif
+ 752     /*************************************************
+ 753      *
+ 754      *     FUNCTION: Calculates the Flanagan-Belytschko anti-hourglass
+ 755      *               force.
+ 756      *
+ 757      *************************************************/
+ 758    
+ 759     Index_t numElem8 = numElem * 8 ;
+ 760  
+ 761     Real_t *fx_elem; 
+ 762     Real_t *fy_elem; 
+ 763     Real_t *fz_elem; 
+ 764  
+ 765     if(numthreads > 1) {
+ 766        fx_elem = Allocate<Real_t>(numElem8) ;
+ 767        fy_elem = Allocate<Real_t>(numElem8) ;
+ 768        fz_elem = Allocate<Real_t>(numElem8) ;
+ 769     }
+ 770  
+ 771     Real_t  gamma[4][8];
+ 772  
+ 773     gamma[0][0] = Real_t( 1.);
+ 774     gamma[0][1] = Real_t( 1.);
+ 775     gamma[0][2] = Real_t(-1.);
+ 776     gamma[0][3] = Real_t(-1.);
+ 777     gamma[0][4] = Real_t(-1.);
+ 778     gamma[0][5] = Real_t(-1.);
+ 779     gamma[0][6] = Real_t( 1.);
+ 780     gamma[0][7] = Real_t( 1.);
+ 781     gamma[1][0] = Real_t( 1.);
+ 782     gamma[1][1] = Real_t(-1.);
+ 783     gamma[1][2] = Real_t(-1.);
+ 784     gamma[1][3] = Real_t( 1.);
+ 785     gamma[1][4] = Real_t(-1.);
+ 786     gamma[1][5] = Real_t( 1.);
+ 787     gamma[1][6] = Real_t( 1.);
+ 788     gamma[1][7] = Real_t(-1.);
+ 789     gamma[2][0] = Real_t( 1.);
+ 790     gamma[2][1] = Real_t(-1.);
+ 791     gamma[2][2] = Real_t( 1.);
+ 792     gamma[2][3] = Real_t(-1.);
+ 793     gamma[2][4] = Real_t( 1.);
+ 794     gamma[2][5] = Real_t(-1.);
+ 795     gamma[2][6] = Real_t( 1.);
+ 796     gamma[2][7] = Real_t(-1.);
+ 797     gamma[3][0] = Real_t(-1.);
+ 798     gamma[3][1] = Real_t( 1.);
+ 799     gamma[3][2] = Real_t(-1.);
+ 800     gamma[3][3] = Real_t( 1.);
+ 801     gamma[3][4] = Real_t( 1.);
+ 802     gamma[3][5] = Real_t(-1.);
+ 803     gamma[3][6] = Real_t( 1.);
+ 804     gamma[3][7] = Real_t(-1.);
+ 805  
+ 806  /*************************************************/
+ 807  /*    compute the hourglass modes */
+ 808  
+ 809  
+ 810  #pragma omp parallel for firstprivate(numElem, hourg)
+ 811     for(Index_t i2=0;i2<numElem;++i2){
+ 812        Real_t *fx_local, *fy_local, *fz_local ;
+ 813        Real_t hgfx[8], hgfy[8], hgfz[8] ;
+ 814  
+ 815        Real_t coefficient;
+ 816  
+ 817        Real_t hourgam[8][4];
+ 818        Real_t xd1[8], yd1[8], zd1[8] ;
+ 819  
+ 820        const Index_t *elemToNode = domain.nodelist(i2);
+ 821        Index_t i3=8*i2;
+ 822        Real_t volinv=Real_t(1.0)/determ[i2];
+ 823        Real_t ss1, mass1, volume13 ;
+ 824        for(Index_t i1=0;i1<4;++i1){
+ 825  
+ 826           Real_t hourmodx =
+ 827              x8n[i3] * gamma[i1][0] + x8n[i3+1] * gamma[i1][1] +
+ 828              x8n[i3+2] * gamma[i1][2] + x8n[i3+3] * gamma[i1][3] +
+ 829              x8n[i3+4] * gamma[i1][4] + x8n[i3+5] * gamma[i1][5] +
+ 830              x8n[i3+6] * gamma[i1][6] + x8n[i3+7] * gamma[i1][7];
+ 831  
+ 832           Real_t hourmody =
+ 833              y8n[i3] * gamma[i1][0] + y8n[i3+1] * gamma[i1][1] +
+ 834              y8n[i3+2] * gamma[i1][2] + y8n[i3+3] * gamma[i1][3] +
+ 835              y8n[i3+4] * gamma[i1][4] + y8n[i3+5] * gamma[i1][5] +
+ 836              y8n[i3+6] * gamma[i1][6] + y8n[i3+7] * gamma[i1][7];
+ 837  
+ 838           Real_t hourmodz =
+ 839              z8n[i3] * gamma[i1][0] + z8n[i3+1] * gamma[i1][1] +
+ 840              z8n[i3+2] * gamma[i1][2] + z8n[i3+3] * gamma[i1][3] +
+ 841              z8n[i3+4] * gamma[i1][4] + z8n[i3+5] * gamma[i1][5] +
+ 842              z8n[i3+6] * gamma[i1][6] + z8n[i3+7] * gamma[i1][7];
+ 843  
+ 844           hourgam[0][i1] = gamma[i1][0] -  volinv*(dvdx[i3  ] * hourmodx +
+ 845                                                    dvdy[i3  ] * hourmody +
+ 846                                                    dvdz[i3  ] * hourmodz );
+ 847  
+ 848           hourgam[1][i1] = gamma[i1][1] -  volinv*(dvdx[i3+1] * hourmodx +
+ 849                                                    dvdy[i3+1] * hourmody +
+ 850                                                    dvdz[i3+1] * hourmodz );
+ 851  
+ 852           hourgam[2][i1] = gamma[i1][2] -  volinv*(dvdx[i3+2] * hourmodx +
+ 853                                                    dvdy[i3+2] * hourmody +
+ 854                                                    dvdz[i3+2] * hourmodz );
+ 855  
+ 856           hourgam[3][i1] = gamma[i1][3] -  volinv*(dvdx[i3+3] * hourmodx +
+ 857                                                    dvdy[i3+3] * hourmody +
+ 858                                                    dvdz[i3+3] * hourmodz );
+ 859  
+ 860           hourgam[4][i1] = gamma[i1][4] -  volinv*(dvdx[i3+4] * hourmodx +
+ 861                                                    dvdy[i3+4] * hourmody +
+ 862                                                    dvdz[i3+4] * hourmodz );
+ 863  
+ 864           hourgam[5][i1] = gamma[i1][5] -  volinv*(dvdx[i3+5] * hourmodx +
+ 865                                                    dvdy[i3+5] * hourmody +
+ 866                                                    dvdz[i3+5] * hourmodz );
+ 867  
+ 868           hourgam[6][i1] = gamma[i1][6] -  volinv*(dvdx[i3+6] * hourmodx +
+ 869                                                    dvdy[i3+6] * hourmody +
+ 870                                                    dvdz[i3+6] * hourmodz );
+ 871  
+ 872           hourgam[7][i1] = gamma[i1][7] -  volinv*(dvdx[i3+7] * hourmodx +
+ 873                                                    dvdy[i3+7] * hourmody +
+ 874                                                    dvdz[i3+7] * hourmodz );
+ 875  
+ 876        }
+ 877  
+ 878        /* compute forces */
+ 879        /* store forces into h arrays (force arrays) */
+ 880  
+ 881        ss1=domain.ss(i2);
+ 882        mass1=domain.elemMass(i2);
+ 883        volume13=CBRT(determ[i2]);
+ 884  
+ 885        Index_t n0si2 = elemToNode[0];
+ 886        Index_t n1si2 = elemToNode[1];
+ 887        Index_t n2si2 = elemToNode[2];
+ 888        Index_t n3si2 = elemToNode[3];
+ 889        Index_t n4si2 = elemToNode[4];
+ 890        Index_t n5si2 = elemToNode[5];
+ 891        Index_t n6si2 = elemToNode[6];
+ 892        Index_t n7si2 = elemToNode[7];
+ 893  
+ 894        xd1[0] = domain.xd(n0si2);
+ 895        xd1[1] = domain.xd(n1si2);
+ 896        xd1[2] = domain.xd(n2si2);
+ 897        xd1[3] = domain.xd(n3si2);
+ 898        xd1[4] = domain.xd(n4si2);
+ 899        xd1[5] = domain.xd(n5si2);
+ 900        xd1[6] = domain.xd(n6si2);
+ 901        xd1[7] = domain.xd(n7si2);
+ 902  
+ 903        yd1[0] = domain.yd(n0si2);
+ 904        yd1[1] = domain.yd(n1si2);
+ 905        yd1[2] = domain.yd(n2si2);
+ 906        yd1[3] = domain.yd(n3si2);
+ 907        yd1[4] = domain.yd(n4si2);
+ 908        yd1[5] = domain.yd(n5si2);
+ 909        yd1[6] = domain.yd(n6si2);
+ 910        yd1[7] = domain.yd(n7si2);
+ 911  
+ 912        zd1[0] = domain.zd(n0si2);
+ 913        zd1[1] = domain.zd(n1si2);
+ 914        zd1[2] = domain.zd(n2si2);
+ 915        zd1[3] = domain.zd(n3si2);
+ 916        zd1[4] = domain.zd(n4si2);
+ 917        zd1[5] = domain.zd(n5si2);
+ 918        zd1[6] = domain.zd(n6si2);
+ 919        zd1[7] = domain.zd(n7si2);
+ 920  
+ 921        coefficient = - hourg * Real_t(0.01) * ss1 * mass1 / volume13;
+ 922  
+ 923        CalcElemFBHourglassForce(xd1,yd1,zd1,
+ 924                        hourgam,
+ 925                        coefficient, hgfx, hgfy, hgfz);
+ 926  
+ 927        // With the threaded version, we write into local arrays per elem
+ 928        // so we don't have to worry about race conditions
+ 929        if (numthreads > 1) {
+ 930           fx_local = &fx_elem[i3] ;
+ 931           fx_local[0] = hgfx[0];
+ 932           fx_local[1] = hgfx[1];
+ 933           fx_local[2] = hgfx[2];
+ 934           fx_local[3] = hgfx[3];
+ 935           fx_local[4] = hgfx[4];
+ 936           fx_local[5] = hgfx[5];
+ 937           fx_local[6] = hgfx[6];
+ 938           fx_local[7] = hgfx[7];
+ 939  
+ 940           fy_local = &fy_elem[i3] ;
+ 941           fy_local[0] = hgfy[0];
+ 942           fy_local[1] = hgfy[1];
+ 943           fy_local[2] = hgfy[2];
+ 944           fy_local[3] = hgfy[3];
+ 945           fy_local[4] = hgfy[4];
+ 946           fy_local[5] = hgfy[5];
+ 947           fy_local[6] = hgfy[6];
+ 948           fy_local[7] = hgfy[7];
+ 949  
+ 950           fz_local = &fz_elem[i3] ;
+ 951           fz_local[0] = hgfz[0];
+ 952           fz_local[1] = hgfz[1];
+ 953           fz_local[2] = hgfz[2];
+ 954           fz_local[3] = hgfz[3];
+ 955           fz_local[4] = hgfz[4];
+ 956           fz_local[5] = hgfz[5];
+ 957           fz_local[6] = hgfz[6];
+ 958           fz_local[7] = hgfz[7];
+ 959        }
+ 960        else {
+ 961           domain.fx(n0si2) += hgfx[0];
+ 962           domain.fy(n0si2) += hgfy[0];
+ 963           domain.fz(n0si2) += hgfz[0];
+ 964  
+ 965           domain.fx(n1si2) += hgfx[1];
+ 966           domain.fy(n1si2) += hgfy[1];
+ 967           domain.fz(n1si2) += hgfz[1];
+ 968  
+ 969           domain.fx(n2si2) += hgfx[2];
+ 970           domain.fy(n2si2) += hgfy[2];
+ 971           domain.fz(n2si2) += hgfz[2];
+ 972  
+ 973           domain.fx(n3si2) += hgfx[3];
+ 974           domain.fy(n3si2) += hgfy[3];
+ 975           domain.fz(n3si2) += hgfz[3];
+ 976  
+ 977           domain.fx(n4si2) += hgfx[4];
+ 978           domain.fy(n4si2) += hgfy[4];
+ 979           domain.fz(n4si2) += hgfz[4];
+ 980  
+ 981           domain.fx(n5si2) += hgfx[5];
+ 982           domain.fy(n5si2) += hgfy[5];
+ 983           domain.fz(n5si2) += hgfz[5];
+ 984  
+ 985           domain.fx(n6si2) += hgfx[6];
+ 986           domain.fy(n6si2) += hgfy[6];
+ 987           domain.fz(n6si2) += hgfz[6];
+ 988  
+ 989           domain.fx(n7si2) += hgfx[7];
+ 990           domain.fy(n7si2) += hgfy[7];
+ 991           domain.fz(n7si2) += hgfz[7];
+ 992        }
+ 993     }
+ 994  
+ 995     if (numthreads > 1) {
+ 996       // Collect the data from the local arrays into the final force arrays
+ 997  #pragma omp parallel for firstprivate(numNode)
+ 998        for( Index_t gnode=0 ; gnode<numNode ; ++gnode )
+ 999        {
+1000           Index_t count = domain.nodeElemCount(gnode) ;
+1001           Index_t *cornerList = domain.nodeElemCornerList(gnode) ;
+1002           Real_t fx_tmp = Real_t(0.0) ;
+1003           Real_t fy_tmp = Real_t(0.0) ;
+1004           Real_t fz_tmp = Real_t(0.0) ;
+1005           for (Index_t i=0 ; i < count ; ++i) {
+1006              Index_t elem = cornerList[i] ;
+1007              fx_tmp += fx_elem[elem] ;
+1008              fy_tmp += fy_elem[elem] ;
+1009              fz_tmp += fz_elem[elem] ;
+1010           }
+1011           domain.fx(gnode) += fx_tmp ;
+1012           domain.fy(gnode) += fy_tmp ;
+1013           domain.fz(gnode) += fz_tmp ;
+1014        }
+1015        Release(&fz_elem) ;
+1016        Release(&fy_elem) ;
+1017        Release(&fx_elem) ;
+1018     }
+1019  }
+1020  
+1021  /******************************************/
+1022  
+1023  static inline
+1024  void CalcHourglassControlForElems(Domain& domain,
+1025                                    Real_t determ[], Real_t hgcoef)
+1026  {
+1027     Index_t numElem = domain.numElem() ;
+1028     Index_t numElem8 = numElem * 8 ;
+1029     Real_t *dvdx = Allocate<Real_t>(numElem8) ;
+1030     Real_t *dvdy = Allocate<Real_t>(numElem8) ;
+1031     Real_t *dvdz = Allocate<Real_t>(numElem8) ;
+1032     Real_t *x8n  = Allocate<Real_t>(numElem8) ;
+1033     Real_t *y8n  = Allocate<Real_t>(numElem8) ;
+1034     Real_t *z8n  = Allocate<Real_t>(numElem8) ;
+1035  
+1036     /* start loop over elements */
+1037  #pragma omp parallel for firstprivate(numElem)
+1038     for (Index_t i=0 ; i<numElem ; ++i){
+1039        Real_t  x1[8],  y1[8],  z1[8] ;
+1040        Real_t pfx[8], pfy[8], pfz[8] ;
+1041  
+1042        Index_t* elemToNode = domain.nodelist(i);
+1043        CollectDomainNodesToElemNodes(domain, elemToNode, x1, y1, z1);
+1044  
+1045        CalcElemVolumeDerivative(pfx, pfy, pfz, x1, y1, z1);
+1046  
+1047        /* load into temporary storage for FB Hour Glass control */
+1048        for(Index_t ii=0;ii<8;++ii){
+1049           Index_t jj=8*i+ii;
+1050  
+1051           dvdx[jj] = pfx[ii];
+1052           dvdy[jj] = pfy[ii];
+1053           dvdz[jj] = pfz[ii];
+1054           x8n[jj]  = x1[ii];
+1055           y8n[jj]  = y1[ii];
+1056           z8n[jj]  = z1[ii];
+1057        }
+1058  
+1059        determ[i] = domain.volo(i) * domain.v(i);
+1060  
+1061        /* Do a check for negative volumes */
+1062        if ( domain.v(i) <= Real_t(0.0) ) {
+1063  #if USE_MPI         
+1064           MPI_Abort(MPI_COMM_WORLD, VolumeError) ;
+1065  #else
+1066           exit(VolumeError);
+1067  #endif
+1068        }
+1069     }
+1070  
+1071     if ( hgcoef > Real_t(0.) ) {
+1072        CalcFBHourglassForceForElems( domain,
+1073                                      determ, x8n, y8n, z8n, dvdx, dvdy, dvdz,
+1074                                      hgcoef, numElem, domain.numNode()) ;
+1075     }
+1076  
+1077     Release(&z8n) ;
+1078     Release(&y8n) ;
+1079     Release(&x8n) ;
+1080     Release(&dvdz) ;
+1081     Release(&dvdy) ;
+1082     Release(&dvdx) ;
+1083  
+1084     return ;
+1085  }
+1086  
+1087  /******************************************/
+1088  
+1089  static inline
+1090  void CalcVolumeForceForElems(Domain& domain)
+1091  {
+1092     Index_t numElem = domain.numElem() ;
+1093     if (numElem != 0) {
+1094        Real_t  hgcoef = domain.hgcoef() ;
+1095        Real_t *sigxx  = Allocate<Real_t>(numElem) ;
+1096        Real_t *sigyy  = Allocate<Real_t>(numElem) ;
+1097        Real_t *sigzz  = Allocate<Real_t>(numElem) ;
+1098        Real_t *determ = Allocate<Real_t>(numElem) ;
+1099  
+1100        /* Sum contributions to total stress tensor */
+1101        InitStressTermsForElems(domain, sigxx, sigyy, sigzz, numElem);
+1102  
+1103        // call elemlib stress integration loop to produce nodal forces from
+1104        // material stresses.
+1105        IntegrateStressForElems( domain,
+1106                                 sigxx, sigyy, sigzz, determ, numElem,
+1107                                 domain.numNode()) ;
+1108  
+1109        // check for negative element volume
+1110  #pragma omp parallel for firstprivate(numElem)
+1111        for ( Index_t k=0 ; k<numElem ; ++k ) {
+1112           if (determ[k] <= Real_t(0.0)) {
+1113  #if USE_MPI            
+1114              MPI_Abort(MPI_COMM_WORLD, VolumeError) ;
+1115  #else
+1116              exit(VolumeError);
+1117  #endif
+1118           }
+1119        }
+1120  
+1121        CalcHourglassControlForElems(domain, determ, hgcoef) ;
+1122  
+1123        Release(&determ) ;
+1124        Release(&sigzz) ;
+1125        Release(&sigyy) ;
+1126        Release(&sigxx) ;
+1127     }
+1128  }
+1129  
+1130  /******************************************/
+1131  
+1132  static inline void CalcForceForNodes(Domain& domain)
+1133  {
+1134    Index_t numNode = domain.numNode() ;
+1135  
+1136  #if USE_MPI  
+1137    CommRecv(domain, MSG_COMM_SBN, 3,
+1138             domain.sizeX() + 1, domain.sizeY() + 1, domain.sizeZ() + 1,
+1139             true, false) ;
+1140  #endif  
+1141  
+1142  #pragma omp parallel for firstprivate(numNode)
+1143    for (Index_t i=0; i<numNode; ++i) {
+1144       domain.fx(i) = Real_t(0.0) ;
+1145       domain.fy(i) = Real_t(0.0) ;
+1146       domain.fz(i) = Real_t(0.0) ;
+1147    }
+1148  
+1149    /* Calcforce calls partial, force, hourq */
+1150    CalcVolumeForceForElems(domain) ;
+1151  
+1152  #if USE_MPI  
+1153    Domain_member fieldData[3] ;
+1154    fieldData[0] = &Domain::fx ;
+1155    fieldData[1] = &Domain::fy ;
+1156    fieldData[2] = &Domain::fz ;
+1157    
+1158    CommSend(domain, MSG_COMM_SBN, 3, fieldData,
+1159             domain.sizeX() + 1, domain.sizeY() + 1, domain.sizeZ() +  1,
+1160             true, false) ;
+1161    CommSBN(domain, 3, fieldData) ;
+1162  #endif  
+1163  }
+1164  
+1165  /******************************************/
+1166  
+1167  static inline
+1168  void CalcAccelerationForNodes(Domain &domain, Index_t numNode)
+1169  {
+1170     
+1171  #pragma omp parallel for firstprivate(numNode)
+1172     for (Index_t i = 0; i < numNode; ++i) {
+1173        domain.xdd(i) = domain.fx(i) / domain.nodalMass(i);
+1174        domain.ydd(i) = domain.fy(i) / domain.nodalMass(i);
+1175        domain.zdd(i) = domain.fz(i) / domain.nodalMass(i);
+1176     }
+1177  }
+1178  
+1179  /******************************************/
+1180  
+1181  static inline
+1182  void ApplyAccelerationBoundaryConditionsForNodes(Domain& domain)
+1183  {
+1184     Index_t size = domain.sizeX();
+1185     Index_t numNodeBC = (size+1)*(size+1) ;
+1186  
+1187  #pragma omp parallel
+1188     {
+1189        if (!domain.symmXempty() != 0) {
+1190  #pragma omp for nowait firstprivate(numNodeBC)
+1191           for(Index_t i=0 ; i<numNodeBC ; ++i)
+1192              domain.xdd(domain.symmX(i)) = Real_t(0.0) ;
+1193        }
+1194  
+1195        if (!domain.symmYempty() != 0) {
+1196  #pragma omp for nowait firstprivate(numNodeBC)
+1197           for(Index_t i=0 ; i<numNodeBC ; ++i)
+1198              domain.ydd(domain.symmY(i)) = Real_t(0.0) ;
+1199        }
+1200  
+1201        if (!domain.symmZempty() != 0) {
+1202  #pragma omp for nowait firstprivate(numNodeBC)
+1203           for(Index_t i=0 ; i<numNodeBC ; ++i)
+1204              domain.zdd(domain.symmZ(i)) = Real_t(0.0) ;
+1205        }
+1206     }
+1207  }
+1208  
+1209  /******************************************/
+1210  
+1211  static inline
+1212  void CalcVelocityForNodes(Domain &domain, const Real_t dt, const Real_t u_cut,
+1213                            Index_t numNode)
+1214  {
+1215  
+1216  #pragma omp parallel for firstprivate(numNode)
+1217     for ( Index_t i = 0 ; i < numNode ; ++i )
+1218     {
+1219       Real_t xdtmp, ydtmp, zdtmp ;
+1220  
+1221       xdtmp = domain.xd(i) + domain.xdd(i) * dt ;
+1222       if( FABS(xdtmp) < u_cut ) xdtmp = Real_t(0.0);
+1223       domain.xd(i) = xdtmp ;
+1224  
+1225       ydtmp = domain.yd(i) + domain.ydd(i) * dt ;
+1226       if( FABS(ydtmp) < u_cut ) ydtmp = Real_t(0.0);
+1227       domain.yd(i) = ydtmp ;
+1228  
+1229       zdtmp = domain.zd(i) + domain.zdd(i) * dt ;
+1230       if( FABS(zdtmp) < u_cut ) zdtmp = Real_t(0.0);
+1231       domain.zd(i) = zdtmp ;
+1232     }
+1233  }
+1234  
+1235  /******************************************/
+1236  
+1237  static inline
+1238  void CalcPositionForNodes(Domain &domain, const Real_t dt, Index_t numNode)
+1239  {
+1240  #pragma omp parallel for firstprivate(numNode)
+1241     for ( Index_t i = 0 ; i < numNode ; ++i )
+1242     {
+1243       domain.x(i) += domain.xd(i) * dt ;
+1244       domain.y(i) += domain.yd(i) * dt ;
+1245       domain.z(i) += domain.zd(i) * dt ;
+1246     }
+1247  }
+1248  
+1249  /******************************************/
+1250  
+1251  static inline
+1252  void LagrangeNodal(Domain& domain)
+1253  {
+1254  #ifdef SEDOV_SYNC_POS_VEL_EARLY
+1255     Domain_member fieldData[6] ;
+1256  #endif
+1257  
+1258     const Real_t delt = domain.deltatime() ;
+1259     Real_t u_cut = domain.u_cut() ;
+1260  
+1261    /* time of boundary condition evaluation is beginning of step for force and
+1262     * acceleration boundary conditions. */
+1263    CalcForceForNodes(domain);
+1264  
+1265  #if USE_MPI  
+1266  #ifdef SEDOV_SYNC_POS_VEL_EARLY
+1267     CommRecv(domain, MSG_SYNC_POS_VEL, 6,
+1268              domain.sizeX() + 1, domain.sizeY() + 1, domain.sizeZ() + 1,
+1269              false, false) ;
+1270  #endif
+1271  #endif
+1272     
+1273     CalcAccelerationForNodes(domain, domain.numNode());
+1274     
+1275     ApplyAccelerationBoundaryConditionsForNodes(domain);
+1276  
+1277     CalcVelocityForNodes( domain, delt, u_cut, domain.numNode()) ;
+1278  
+1279     CalcPositionForNodes( domain, delt, domain.numNode() );
+1280  #if USE_MPI
+1281  #ifdef SEDOV_SYNC_POS_VEL_EARLY
+1282    fieldData[0] = &Domain::x ;
+1283    fieldData[1] = &Domain::y ;
+1284    fieldData[2] = &Domain::z ;
+1285    fieldData[3] = &Domain::xd ;
+1286    fieldData[4] = &Domain::yd ;
+1287    fieldData[5] = &Domain::zd ;
+1288  
+1289     CommSend(domain, MSG_SYNC_POS_VEL, 6, fieldData,
+1290              domain.sizeX() + 1, domain.sizeY() + 1, domain.sizeZ() + 1,
+1291              false, false) ;
+1292     CommSyncPosVel(domain) ;
+1293  #endif
+1294  #endif
+1295     
+1296    return;
+1297  }
+1298  
+1299  /******************************************/
+1300  
+1301  static inline
+1302  Real_t CalcElemVolume( const Real_t x0, const Real_t x1,
+1303                 const Real_t x2, const Real_t x3,
+1304                 const Real_t x4, const Real_t x5,
+1305                 const Real_t x6, const Real_t x7,
+1306                 const Real_t y0, const Real_t y1,
+1307                 const Real_t y2, const Real_t y3,
+1308                 const Real_t y4, const Real_t y5,
+1309                 const Real_t y6, const Real_t y7,
+1310                 const Real_t z0, const Real_t z1,
+1311                 const Real_t z2, const Real_t z3,
+1312                 const Real_t z4, const Real_t z5,
+1313                 const Real_t z6, const Real_t z7 )
+1314  {
+1315    Real_t twelveth = Real_t(1.0)/Real_t(12.0);
+1316  
+1317    Real_t dx61 = x6 - x1;
+1318    Real_t dy61 = y6 - y1;
+1319    Real_t dz61 = z6 - z1;
+1320  
+1321    Real_t dx70 = x7 - x0;
+1322    Real_t dy70 = y7 - y0;
+1323    Real_t dz70 = z7 - z0;
+1324  
+1325    Real_t dx63 = x6 - x3;
+1326    Real_t dy63 = y6 - y3;
+1327    Real_t dz63 = z6 - z3;
+1328  
+1329    Real_t dx20 = x2 - x0;
+1330    Real_t dy20 = y2 - y0;
+1331    Real_t dz20 = z2 - z0;
+1332  
+1333    Real_t dx50 = x5 - x0;
+1334    Real_t dy50 = y5 - y0;
+1335    Real_t dz50 = z5 - z0;
+1336  
+1337    Real_t dx64 = x6 - x4;
+1338    Real_t dy64 = y6 - y4;
+1339    Real_t dz64 = z6 - z4;
+1340  
+1341    Real_t dx31 = x3 - x1;
+1342    Real_t dy31 = y3 - y1;
+1343    Real_t dz31 = z3 - z1;
+1344  
+1345    Real_t dx72 = x7 - x2;
+1346    Real_t dy72 = y7 - y2;
+1347    Real_t dz72 = z7 - z2;
+1348  
+1349    Real_t dx43 = x4 - x3;
+1350    Real_t dy43 = y4 - y3;
+1351    Real_t dz43 = z4 - z3;
+1352  
+1353    Real_t dx57 = x5 - x7;
+1354    Real_t dy57 = y5 - y7;
+1355    Real_t dz57 = z5 - z7;
+1356  
+1357    Real_t dx14 = x1 - x4;
+1358    Real_t dy14 = y1 - y4;
+1359    Real_t dz14 = z1 - z4;
+1360  
+1361    Real_t dx25 = x2 - x5;
+1362    Real_t dy25 = y2 - y5;
+1363    Real_t dz25 = z2 - z5;
+1364  
+1365  #define TRIPLE_PRODUCT(x1, y1, z1, x2, y2, z2, x3, y3, z3) \
+1366     ((x1)*((y2)*(z3) - (z2)*(y3)) + (x2)*((z1)*(y3) - (y1)*(z3)) + (x3)*((y1)*(z2) - (z1)*(y2)))
+1367  
+1368    Real_t volume =
+1369      TRIPLE_PRODUCT(dx31 + dx72, dx63, dx20,
+1370         dy31 + dy72, dy63, dy20,
+1371         dz31 + dz72, dz63, dz20) +
+1372      TRIPLE_PRODUCT(dx43 + dx57, dx64, dx70,
+1373         dy43 + dy57, dy64, dy70,
+1374         dz43 + dz57, dz64, dz70) +
+1375      TRIPLE_PRODUCT(dx14 + dx25, dx61, dx50,
+1376         dy14 + dy25, dy61, dy50,
+1377         dz14 + dz25, dz61, dz50);
+1378  
+1379  #undef TRIPLE_PRODUCT
+1380  
+1381    volume *= twelveth;
+1382  
+1383    return volume ;
+1384  }
+1385  
+1386  /******************************************/
+1387  
+1388  //inline
+1389  Real_t CalcElemVolume( const Real_t x[8], const Real_t y[8], const Real_t z[8] )
+1390  {
+1391  return CalcElemVolume( x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7],
+1392                         y[0], y[1], y[2], y[3], y[4], y[5], y[6], y[7],
+1393                         z[0], z[1], z[2], z[3], z[4], z[5], z[6], z[7]);
+1394  }
+1395  
+1396  /******************************************/
+1397  
+1398  static inline
+1399  Real_t AreaFace( const Real_t x0, const Real_t x1,
+1400                   const Real_t x2, const Real_t x3,
+1401                   const Real_t y0, const Real_t y1,
+1402                   const Real_t y2, const Real_t y3,
+1403                   const Real_t z0, const Real_t z1,
+1404                   const Real_t z2, const Real_t z3)
+1405  {
+1406     Real_t fx = (x2 - x0) - (x3 - x1);
+1407     Real_t fy = (y2 - y0) - (y3 - y1);
+1408     Real_t fz = (z2 - z0) - (z3 - z1);
+1409     Real_t gx = (x2 - x0) + (x3 - x1);
+1410     Real_t gy = (y2 - y0) + (y3 - y1);
+1411     Real_t gz = (z2 - z0) + (z3 - z1);
+1412     Real_t area =
+1413        (fx * fx + fy * fy + fz * fz) *
+1414        (gx * gx + gy * gy + gz * gz) -
+1415        (fx * gx + fy * gy + fz * gz) *
+1416        (fx * gx + fy * gy + fz * gz);
+1417     return area ;
+1418  }
+1419  
+1420  /******************************************/
+1421  
+1422  static inline
+1423  Real_t CalcElemCharacteristicLength( const Real_t x[8],
+1424                                       const Real_t y[8],
+1425                                       const Real_t z[8],
+1426                                       const Real_t volume)
+1427  {
+1428     Real_t a, charLength = Real_t(0.0);
+1429  
+1430     a = AreaFace(x[0],x[1],x[2],x[3],
+1431                  y[0],y[1],y[2],y[3],
+1432                  z[0],z[1],z[2],z[3]) ;
+1433     charLength = std::max(a,charLength) ;
+1434  
+1435     a = AreaFace(x[4],x[5],x[6],x[7],
+1436                  y[4],y[5],y[6],y[7],
+1437                  z[4],z[5],z[6],z[7]) ;
+1438     charLength = std::max(a,charLength) ;
+1439  
+1440     a = AreaFace(x[0],x[1],x[5],x[4],
+1441                  y[0],y[1],y[5],y[4],
+1442                  z[0],z[1],z[5],z[4]) ;
+1443     charLength = std::max(a,charLength) ;
+1444  
+1445     a = AreaFace(x[1],x[2],x[6],x[5],
+1446                  y[1],y[2],y[6],y[5],
+1447                  z[1],z[2],z[6],z[5]) ;
+1448     charLength = std::max(a,charLength) ;
+1449  
+1450     a = AreaFace(x[2],x[3],x[7],x[6],
+1451                  y[2],y[3],y[7],y[6],
+1452                  z[2],z[3],z[7],z[6]) ;
+1453     charLength = std::max(a,charLength) ;
+1454  
+1455     a = AreaFace(x[3],x[0],x[4],x[7],
+1456                  y[3],y[0],y[4],y[7],
+1457                  z[3],z[0],z[4],z[7]) ;
+1458     charLength = std::max(a,charLength) ;
+1459  
+1460     charLength = Real_t(4.0) * volume / SQRT(charLength);
+1461  
+1462     return charLength;
+1463  }
+1464  
+1465  /******************************************/
+1466  
+1467  static inline
+1468  void CalcElemVelocityGradient( const Real_t* const xvel,
+1469                                  const Real_t* const yvel,
+1470                                  const Real_t* const zvel,
+1471                                  const Real_t b[][8],
+1472                                  const Real_t detJ,
+1473                                  Real_t* const d )
+1474  {
+1475    const Real_t inv_detJ = Real_t(1.0) / detJ ;
+1476    Real_t dyddx, dxddy, dzddx, dxddz, dzddy, dyddz;
+1477    const Real_t* const pfx = b[0];
+1478    const Real_t* const pfy = b[1];
+1479    const Real_t* const pfz = b[2];
+1480  
+1481    d[0] = inv_detJ * ( pfx[0] * (xvel[0]-xvel[6])
+1482                       + pfx[1] * (xvel[1]-xvel[7])
+1483                       + pfx[2] * (xvel[2]-xvel[4])
+1484                       + pfx[3] * (xvel[3]-xvel[5]) );
+1485  
+1486    d[1] = inv_detJ * ( pfy[0] * (yvel[0]-yvel[6])
+1487                       + pfy[1] * (yvel[1]-yvel[7])
+1488                       + pfy[2] * (yvel[2]-yvel[4])
+1489                       + pfy[3] * (yvel[3]-yvel[5]) );
+1490  
+1491    d[2] = inv_detJ * ( pfz[0] * (zvel[0]-zvel[6])
+1492                       + pfz[1] * (zvel[1]-zvel[7])
+1493                       + pfz[2] * (zvel[2]-zvel[4])
+1494                       + pfz[3] * (zvel[3]-zvel[5]) );
+1495  
+1496    dyddx  = inv_detJ * ( pfx[0] * (yvel[0]-yvel[6])
+1497                        + pfx[1] * (yvel[1]-yvel[7])
+1498                        + pfx[2] * (yvel[2]-yvel[4])
+1499                        + pfx[3] * (yvel[3]-yvel[5]) );
+1500  
+1501    dxddy  = inv_detJ * ( pfy[0] * (xvel[0]-xvel[6])
+1502                        + pfy[1] * (xvel[1]-xvel[7])
+1503                        + pfy[2] * (xvel[2]-xvel[4])
+1504                        + pfy[3] * (xvel[3]-xvel[5]) );
+1505  
+1506    dzddx  = inv_detJ * ( pfx[0] * (zvel[0]-zvel[6])
+1507                        + pfx[1] * (zvel[1]-zvel[7])
+1508                        + pfx[2] * (zvel[2]-zvel[4])
+1509                        + pfx[3] * (zvel[3]-zvel[5]) );
+1510  
+1511    dxddz  = inv_detJ * ( pfz[0] * (xvel[0]-xvel[6])
+1512                        + pfz[1] * (xvel[1]-xvel[7])
+1513                        + pfz[2] * (xvel[2]-xvel[4])
+1514                        + pfz[3] * (xvel[3]-xvel[5]) );
+1515  
+1516    dzddy  = inv_detJ * ( pfy[0] * (zvel[0]-zvel[6])
+1517                        + pfy[1] * (zvel[1]-zvel[7])
+1518                        + pfy[2] * (zvel[2]-zvel[4])
+1519                        + pfy[3] * (zvel[3]-zvel[5]) );
+1520  
+1521    dyddz  = inv_detJ * ( pfz[0] * (yvel[0]-yvel[6])
+1522                        + pfz[1] * (yvel[1]-yvel[7])
+1523                        + pfz[2] * (yvel[2]-yvel[4])
+1524                        + pfz[3] * (yvel[3]-yvel[5]) );
+1525    d[5]  = Real_t( .5) * ( dxddy + dyddx );
+1526    d[4]  = Real_t( .5) * ( dxddz + dzddx );
+1527    d[3]  = Real_t( .5) * ( dzddy + dyddz );
+1528  }
+1529  
+1530  /******************************************/
+1531  
+1532  //static inline
+1533  void CalcKinematicsForElems( Domain &domain, Real_t *vnew, 
+1534                               Real_t deltaTime, Index_t numElem )
+1535  {
+1536  
+1537    // loop over all elements
+1538  #pragma omp parallel for firstprivate(numElem, deltaTime)
+1539    for( Index_t k=0 ; k<numElem ; ++k )
+1540    {
+1541      Real_t B[3][8] ; /** shape function derivatives */
+1542      Real_t D[6] ;
+1543      Real_t x_local[8] ;
+1544      Real_t y_local[8] ;
+1545      Real_t z_local[8] ;
+1546      Real_t xd_local[8] ;
+1547      Real_t yd_local[8] ;
+1548      Real_t zd_local[8] ;
+1549      Real_t detJ = Real_t(0.0) ;
+1550  
+1551      Real_t volume ;
+1552      Real_t relativeVolume ;
+1553      const Index_t* const elemToNode = domain.nodelist(k) ;
+1554  
+1555      // get nodal coordinates from global arrays and copy into local arrays.
+1556      CollectDomainNodesToElemNodes(domain, elemToNode, x_local, y_local, z_local);
+1557  
+1558      // volume calculations
+1559      volume = CalcElemVolume(x_local, y_local, z_local );
+1560      relativeVolume = volume / domain.volo(k) ;
+1561      vnew[k] = relativeVolume ;
+1562      domain.delv(k) = relativeVolume - domain.v(k) ;
+1563  
+1564      // set characteristic length
+1565      domain.arealg(k) = CalcElemCharacteristicLength(x_local, y_local, z_local,
+1566                                               volume);
+1567  
+1568      // get nodal velocities from global array and copy into local arrays.
+1569      for( Index_t lnode=0 ; lnode<8 ; ++lnode )
+1570      {
+1571        Index_t gnode = elemToNode[lnode];
+1572        xd_local[lnode] = domain.xd(gnode);
+1573        yd_local[lnode] = domain.yd(gnode);
+1574        zd_local[lnode] = domain.zd(gnode);
+1575      }
+1576  
+1577      Real_t dt2 = Real_t(0.5) * deltaTime;
+1578      for ( Index_t j=0 ; j<8 ; ++j )
+1579      {
+1580         x_local[j] -= dt2 * xd_local[j];
+1581         y_local[j] -= dt2 * yd_local[j];
+1582         z_local[j] -= dt2 * zd_local[j];
+1583      }
+1584  
+1585      CalcElemShapeFunctionDerivatives( x_local, y_local, z_local,
+1586                                        B, &detJ );
+1587  
+1588      CalcElemVelocityGradient( xd_local, yd_local, zd_local,
+1589                                 B, detJ, D );
+1590  
+1591      // put velocity gradient quantities into their global arrays.
+1592      domain.dxx(k) = D[0];
+1593      domain.dyy(k) = D[1];
+1594      domain.dzz(k) = D[2];
+1595    }
+1596  }
+1597  
+1598  /******************************************/
+1599  
+1600  static inline
+1601  void CalcLagrangeElements(Domain& domain, Real_t* vnew)
+1602  {
+1603     Index_t numElem = domain.numElem() ;
+1604     if (numElem > 0) {
+1605        const Real_t deltatime = domain.deltatime() ;
+1606  
+1607        domain.AllocateStrains(numElem);
+1608  
+1609        CalcKinematicsForElems(domain, vnew, deltatime, numElem) ;
+1610  
+1611        // element loop to do some stuff not included in the elemlib function.
+1612  #pragma omp parallel for firstprivate(numElem)
+1613        for ( Index_t k=0 ; k<numElem ; ++k )
+1614        {
+1615           // calc strain rate and apply as constraint (only done in FB element)
+1616           Real_t vdov = domain.dxx(k) + domain.dyy(k) + domain.dzz(k) ;
+1617           Real_t vdovthird = vdov/Real_t(3.0) ;
+1618  
+1619           // make the rate of deformation tensor deviatoric
+1620           domain.vdov(k) = vdov ;
+1621           domain.dxx(k) -= vdovthird ;
+1622           domain.dyy(k) -= vdovthird ;
+1623           domain.dzz(k) -= vdovthird ;
+1624  
+1625          // See if any volumes are negative, and take appropriate action.
+1626           if (vnew[k] <= Real_t(0.0))
+1627          {
+1628  #if USE_MPI           
+1629             MPI_Abort(MPI_COMM_WORLD, VolumeError) ;
+1630  #else
+1631             exit(VolumeError);
+1632  #endif
+1633          }
+1634        }
+1635        domain.DeallocateStrains();
+1636     }
+1637  }
+1638  
+1639  /******************************************/
+1640  
+1641  static inline
+1642  void CalcMonotonicQGradientsForElems(Domain& domain, Real_t vnew[])
+1643  {
+1644     Index_t numElem = domain.numElem();
+1645  
+1646  #pragma omp parallel for firstprivate(numElem)
+1647     for (Index_t i = 0 ; i < numElem ; ++i ) {
+1648        const Real_t ptiny = Real_t(1.e-36) ;
+1649        Real_t ax,ay,az ;
+1650        Real_t dxv,dyv,dzv ;
+1651  
+1652        const Index_t *elemToNode = domain.nodelist(i);
+1653        Index_t n0 = elemToNode[0] ;
+1654        Index_t n1 = elemToNode[1] ;
+1655        Index_t n2 = elemToNode[2] ;
+1656        Index_t n3 = elemToNode[3] ;
+1657        Index_t n4 = elemToNode[4] ;
+1658        Index_t n5 = elemToNode[5] ;
+1659        Index_t n6 = elemToNode[6] ;
+1660        Index_t n7 = elemToNode[7] ;
+1661  
+1662        Real_t x0 = domain.x(n0) ;
+1663        Real_t x1 = domain.x(n1) ;
+1664        Real_t x2 = domain.x(n2) ;
+1665        Real_t x3 = domain.x(n3) ;
+1666        Real_t x4 = domain.x(n4) ;
+1667        Real_t x5 = domain.x(n5) ;
+1668        Real_t x6 = domain.x(n6) ;
+1669        Real_t x7 = domain.x(n7) ;
+1670  
+1671        Real_t y0 = domain.y(n0) ;
+1672        Real_t y1 = domain.y(n1) ;
+1673        Real_t y2 = domain.y(n2) ;
+1674        Real_t y3 = domain.y(n3) ;
+1675        Real_t y4 = domain.y(n4) ;
+1676        Real_t y5 = domain.y(n5) ;
+1677        Real_t y6 = domain.y(n6) ;
+1678        Real_t y7 = domain.y(n7) ;
+1679  
+1680        Real_t z0 = domain.z(n0) ;
+1681        Real_t z1 = domain.z(n1) ;
+1682        Real_t z2 = domain.z(n2) ;
+1683        Real_t z3 = domain.z(n3) ;
+1684        Real_t z4 = domain.z(n4) ;
+1685        Real_t z5 = domain.z(n5) ;
+1686        Real_t z6 = domain.z(n6) ;
+1687        Real_t z7 = domain.z(n7) ;
+1688  
+1689        Real_t xv0 = domain.xd(n0) ;
+1690        Real_t xv1 = domain.xd(n1) ;
+1691        Real_t xv2 = domain.xd(n2) ;
+1692        Real_t xv3 = domain.xd(n3) ;
+1693        Real_t xv4 = domain.xd(n4) ;
+1694        Real_t xv5 = domain.xd(n5) ;
+1695        Real_t xv6 = domain.xd(n6) ;
+1696        Real_t xv7 = domain.xd(n7) ;
+1697  
+1698        Real_t yv0 = domain.yd(n0) ;
+1699        Real_t yv1 = domain.yd(n1) ;
+1700        Real_t yv2 = domain.yd(n2) ;
+1701        Real_t yv3 = domain.yd(n3) ;
+1702        Real_t yv4 = domain.yd(n4) ;
+1703        Real_t yv5 = domain.yd(n5) ;
+1704        Real_t yv6 = domain.yd(n6) ;
+1705        Real_t yv7 = domain.yd(n7) ;
+1706  
+1707        Real_t zv0 = domain.zd(n0) ;
+1708        Real_t zv1 = domain.zd(n1) ;
+1709        Real_t zv2 = domain.zd(n2) ;
+1710        Real_t zv3 = domain.zd(n3) ;
+1711        Real_t zv4 = domain.zd(n4) ;
+1712        Real_t zv5 = domain.zd(n5) ;
+1713        Real_t zv6 = domain.zd(n6) ;
+1714        Real_t zv7 = domain.zd(n7) ;
+1715  
+1716        Real_t vol = domain.volo(i)*vnew[i] ;
+1717        Real_t norm = Real_t(1.0) / ( vol + ptiny ) ;
+1718  
+1719        Real_t dxj = Real_t(-0.25)*((x0+x1+x5+x4) - (x3+x2+x6+x7)) ;
+1720        Real_t dyj = Real_t(-0.25)*((y0+y1+y5+y4) - (y3+y2+y6+y7)) ;
+1721        Real_t dzj = Real_t(-0.25)*((z0+z1+z5+z4) - (z3+z2+z6+z7)) ;
+1722  
+1723        Real_t dxi = Real_t( 0.25)*((x1+x2+x6+x5) - (x0+x3+x7+x4)) ;
+1724        Real_t dyi = Real_t( 0.25)*((y1+y2+y6+y5) - (y0+y3+y7+y4)) ;
+1725        Real_t dzi = Real_t( 0.25)*((z1+z2+z6+z5) - (z0+z3+z7+z4)) ;
+1726  
+1727        Real_t dxk = Real_t( 0.25)*((x4+x5+x6+x7) - (x0+x1+x2+x3)) ;
+1728        Real_t dyk = Real_t( 0.25)*((y4+y5+y6+y7) - (y0+y1+y2+y3)) ;
+1729        Real_t dzk = Real_t( 0.25)*((z4+z5+z6+z7) - (z0+z1+z2+z3)) ;
+1730  
+1731        /* find delvk and delxk ( i cross j ) */
+1732  
+1733        ax = dyi*dzj - dzi*dyj ;
+1734        ay = dzi*dxj - dxi*dzj ;
+1735        az = dxi*dyj - dyi*dxj ;
+1736  
+1737        domain.delx_zeta(i) = vol / SQRT(ax*ax + ay*ay + az*az + ptiny) ;
+1738  
+1739        ax *= norm ;
+1740        ay *= norm ;
+1741        az *= norm ;
+1742  
+1743        dxv = Real_t(0.25)*((xv4+xv5+xv6+xv7) - (xv0+xv1+xv2+xv3)) ;
+1744        dyv = Real_t(0.25)*((yv4+yv5+yv6+yv7) - (yv0+yv1+yv2+yv3)) ;
+1745        dzv = Real_t(0.25)*((zv4+zv5+zv6+zv7) - (zv0+zv1+zv2+zv3)) ;
+1746  
+1747        domain.delv_zeta(i) = ax*dxv + ay*dyv + az*dzv ;
+1748  
+1749        /* find delxi and delvi ( j cross k ) */
+1750  
+1751        ax = dyj*dzk - dzj*dyk ;
+1752        ay = dzj*dxk - dxj*dzk ;
+1753        az = dxj*dyk - dyj*dxk ;
+1754  
+1755        domain.delx_xi(i) = vol / SQRT(ax*ax + ay*ay + az*az + ptiny) ;
+1756  
+1757        ax *= norm ;
+1758        ay *= norm ;
+1759        az *= norm ;
+1760  
+1761        dxv = Real_t(0.25)*((xv1+xv2+xv6+xv5) - (xv0+xv3+xv7+xv4)) ;
+1762        dyv = Real_t(0.25)*((yv1+yv2+yv6+yv5) - (yv0+yv3+yv7+yv4)) ;
+1763        dzv = Real_t(0.25)*((zv1+zv2+zv6+zv5) - (zv0+zv3+zv7+zv4)) ;
+1764  
+1765        domain.delv_xi(i) = ax*dxv + ay*dyv + az*dzv ;
+1766  
+1767        /* find delxj and delvj ( k cross i ) */
+1768  
+1769        ax = dyk*dzi - dzk*dyi ;
+1770        ay = dzk*dxi - dxk*dzi ;
+1771        az = dxk*dyi - dyk*dxi ;
+1772  
+1773        domain.delx_eta(i) = vol / SQRT(ax*ax + ay*ay + az*az + ptiny) ;
+1774  
+1775        ax *= norm ;
+1776        ay *= norm ;
+1777        az *= norm ;
+1778  
+1779        dxv = Real_t(-0.25)*((xv0+xv1+xv5+xv4) - (xv3+xv2+xv6+xv7)) ;
+1780        dyv = Real_t(-0.25)*((yv0+yv1+yv5+yv4) - (yv3+yv2+yv6+yv7)) ;
+1781        dzv = Real_t(-0.25)*((zv0+zv1+zv5+zv4) - (zv3+zv2+zv6+zv7)) ;
+1782  
+1783        domain.delv_eta(i) = ax*dxv + ay*dyv + az*dzv ;
+1784     }
+1785  }
+1786  
+1787  /******************************************/
+1788  
+1789  static inline
+1790  void CalcMonotonicQRegionForElems(Domain &domain, Int_t r,
+1791                                    Real_t vnew[], Real_t ptiny)
+1792  {
+1793     Real_t monoq_limiter_mult = domain.monoq_limiter_mult();
+1794     Real_t monoq_max_slope = domain.monoq_max_slope();
+1795     Real_t qlc_monoq = domain.qlc_monoq();
+1796     Real_t qqc_monoq = domain.qqc_monoq();
+1797  
+1798  #pragma omp parallel for firstprivate(qlc_monoq, qqc_monoq, monoq_limiter_mult, monoq_max_slope, ptiny)
+1799     for ( Index_t ielem = 0 ; ielem < domain.regElemSize(r); ++ielem ) {
+1800        Index_t i = domain.regElemlist(r,ielem);
+1801        Real_t qlin, qquad ;
+1802        Real_t phixi, phieta, phizeta ;
+1803        Int_t bcMask = domain.elemBC(i) ;
+1804        Real_t delvm = 0.0, delvp =0.0;
+1805  
+1806        /*  phixi     */
+1807        Real_t norm = Real_t(1.) / (domain.delv_xi(i)+ ptiny ) ;
+1808  
+1809        switch (bcMask & XI_M) {
+1810           case XI_M_COMM: /* needs comm data */
+1811           case 0:         delvm = domain.delv_xi(domain.lxim(i)); break ;
+1812           case XI_M_SYMM: delvm = domain.delv_xi(i) ;       break ;
+1813           case XI_M_FREE: delvm = Real_t(0.0) ;      break ;
+1814           default:          fprintf(stderr, "Error in switch at %s line %d\n",
+1815                                     __FILE__, __LINE__);
+1816              delvm = 0; /* ERROR - but quiets the compiler */
+1817              break;
+1818        }
+1819        switch (bcMask & XI_P) {
+1820           case XI_P_COMM: /* needs comm data */
+1821           case 0:         delvp = domain.delv_xi(domain.lxip(i)) ; break ;
+1822           case XI_P_SYMM: delvp = domain.delv_xi(i) ;       break ;
+1823           case XI_P_FREE: delvp = Real_t(0.0) ;      break ;
+1824           default:          fprintf(stderr, "Error in switch at %s line %d\n",
+1825                                     __FILE__, __LINE__);
+1826              delvp = 0; /* ERROR - but quiets the compiler */
+1827              break;
+1828        }
+1829  
+1830        delvm = delvm * norm ;
+1831        delvp = delvp * norm ;
+1832  
+1833        phixi = Real_t(.5) * ( delvm + delvp ) ;
+1834  
+1835        delvm *= monoq_limiter_mult ;
+1836        delvp *= monoq_limiter_mult ;
+1837  
+1838        if ( delvm < phixi ) phixi = delvm ;
+1839        if ( delvp < phixi ) phixi = delvp ;
+1840        if ( phixi < Real_t(0.)) phixi = Real_t(0.) ;
+1841        if ( phixi > monoq_max_slope) phixi = monoq_max_slope;
+1842  
+1843  
+1844        /*  phieta     */
+1845        norm = Real_t(1.) / ( domain.delv_eta(i) + ptiny ) ;
+1846  
+1847        switch (bcMask & ETA_M) {
+1848           case ETA_M_COMM: /* needs comm data */
+1849           case 0:          delvm = domain.delv_eta(domain.letam(i)) ; break ;
+1850           case ETA_M_SYMM: delvm = domain.delv_eta(i) ;        break ;
+1851           case ETA_M_FREE: delvm = Real_t(0.0) ;        break ;
+1852           default:          fprintf(stderr, "Error in switch at %s line %d\n",
+1853                                     __FILE__, __LINE__);
+1854              delvm = 0; /* ERROR - but quiets the compiler */
+1855              break;
+1856        }
+1857        switch (bcMask & ETA_P) {
+1858           case ETA_P_COMM: /* needs comm data */
+1859           case 0:          delvp = domain.delv_eta(domain.letap(i)) ; break ;
+1860           case ETA_P_SYMM: delvp = domain.delv_eta(i) ;        break ;
+1861           case ETA_P_FREE: delvp = Real_t(0.0) ;        break ;
+1862           default:          fprintf(stderr, "Error in switch at %s line %d\n",
+1863                                     __FILE__, __LINE__);
+1864              delvp = 0; /* ERROR - but quiets the compiler */
+1865              break;
+1866        }
+1867  
+1868        delvm = delvm * norm ;
+1869        delvp = delvp * norm ;
+1870  
+1871        phieta = Real_t(.5) * ( delvm + delvp ) ;
+1872  
+1873        delvm *= monoq_limiter_mult ;
+1874        delvp *= monoq_limiter_mult ;
+1875  
+1876        if ( delvm  < phieta ) phieta = delvm ;
+1877        if ( delvp  < phieta ) phieta = delvp ;
+1878        if ( phieta < Real_t(0.)) phieta = Real_t(0.) ;
+1879        if ( phieta > monoq_max_slope)  phieta = monoq_max_slope;
+1880  
+1881        /*  phizeta     */
+1882        norm = Real_t(1.) / ( domain.delv_zeta(i) + ptiny ) ;
+1883  
+1884        switch (bcMask & ZETA_M) {
+1885           case ZETA_M_COMM: /* needs comm data */
+1886           case 0:           delvm = domain.delv_zeta(domain.lzetam(i)) ; break ;
+1887           case ZETA_M_SYMM: delvm = domain.delv_zeta(i) ;         break ;
+1888           case ZETA_M_FREE: delvm = Real_t(0.0) ;          break ;
+1889           default:          fprintf(stderr, "Error in switch at %s line %d\n",
+1890                                     __FILE__, __LINE__);
+1891              delvm = 0; /* ERROR - but quiets the compiler */
+1892              break;
+1893        }
+1894        switch (bcMask & ZETA_P) {
+1895           case ZETA_P_COMM: /* needs comm data */
+1896           case 0:           delvp = domain.delv_zeta(domain.lzetap(i)) ; break ;
+1897           case ZETA_P_SYMM: delvp = domain.delv_zeta(i) ;         break ;
+1898           case ZETA_P_FREE: delvp = Real_t(0.0) ;          break ;
+1899           default:          fprintf(stderr, "Error in switch at %s line %d\n",
+1900                                     __FILE__, __LINE__);
+1901              delvp = 0; /* ERROR - but quiets the compiler */
+1902              break;
+1903        }
+1904  
+1905        delvm = delvm * norm ;
+1906        delvp = delvp * norm ;
+1907  
+1908        phizeta = Real_t(.5) * ( delvm + delvp ) ;
+1909  
+1910        delvm *= monoq_limiter_mult ;
+1911        delvp *= monoq_limiter_mult ;
+1912  
+1913        if ( delvm   < phizeta ) phizeta = delvm ;
+1914        if ( delvp   < phizeta ) phizeta = delvp ;
+1915        if ( phizeta < Real_t(0.)) phizeta = Real_t(0.);
+1916        if ( phizeta > monoq_max_slope  ) phizeta = monoq_max_slope;
+1917  
+1918        /* Remove length scale */
+1919  
+1920        if ( domain.vdov(i) > Real_t(0.) )  {
+1921           qlin  = Real_t(0.) ;
+1922           qquad = Real_t(0.) ;
+1923        }
+1924        else {
+1925           Real_t delvxxi   = domain.delv_xi(i)   * domain.delx_xi(i)   ;
+1926           Real_t delvxeta  = domain.delv_eta(i)  * domain.delx_eta(i)  ;
+1927           Real_t delvxzeta = domain.delv_zeta(i) * domain.delx_zeta(i) ;
+1928  
+1929           if ( delvxxi   > Real_t(0.) ) delvxxi   = Real_t(0.) ;
+1930           if ( delvxeta  > Real_t(0.) ) delvxeta  = Real_t(0.) ;
+1931           if ( delvxzeta > Real_t(0.) ) delvxzeta = Real_t(0.) ;
+1932  
+1933           Real_t rho = domain.elemMass(i) / (domain.volo(i) * vnew[i]) ;
+1934  
+1935           qlin = -qlc_monoq * rho *
+1936              (  delvxxi   * (Real_t(1.) - phixi) +
+1937                 delvxeta  * (Real_t(1.) - phieta) +
+1938                 delvxzeta * (Real_t(1.) - phizeta)  ) ;
+1939  
+1940           qquad = qqc_monoq * rho *
+1941              (  delvxxi*delvxxi     * (Real_t(1.) - phixi*phixi) +
+1942                 delvxeta*delvxeta   * (Real_t(1.) - phieta*phieta) +
+1943                 delvxzeta*delvxzeta * (Real_t(1.) - phizeta*phizeta)  ) ;
+1944        }
+1945  
+1946        domain.qq(i) = qquad ;
+1947        domain.ql(i) = qlin  ;
+1948     }
+1949  }
+1950  
+1951  /******************************************/
+1952  
+1953  static inline
+1954  void CalcMonotonicQForElems(Domain& domain, Real_t vnew[])
+1955  {  
+1956     //
+1957     // initialize parameters
+1958     // 
+1959     const Real_t ptiny = Real_t(1.e-36) ;
+1960  
+1961     //
+1962     // calculate the monotonic q for all regions
+1963     //
+1964     for (Index_t r=0 ; r<domain.numReg() ; ++r) {
+1965  
+1966        if (domain.regElemSize(r) > 0) {
+1967           CalcMonotonicQRegionForElems(domain, r, vnew, ptiny) ;
+1968        }
+1969     }
+1970  }
+1971  
+1972  /******************************************/
+1973  
+1974  static inline
+1975  void CalcQForElems(Domain& domain, Real_t vnew[])
+1976  {
+1977     //
+1978     // MONOTONIC Q option
+1979     //
+1980  
+1981     Index_t numElem = domain.numElem() ;
+1982  
+1983     if (numElem != 0) {
+1984        Int_t allElem = numElem +  /* local elem */
+1985              2*domain.sizeX()*domain.sizeY() + /* plane ghosts */
+1986              2*domain.sizeX()*domain.sizeZ() + /* row ghosts */
+1987              2*domain.sizeY()*domain.sizeZ() ; /* col ghosts */
+1988  
+1989        domain.AllocateGradients(numElem, allElem);
+1990  
+1991  #if USE_MPI      
+1992        CommRecv(domain, MSG_MONOQ, 3,
+1993                 domain.sizeX(), domain.sizeY(), domain.sizeZ(),
+1994                 true, true) ;
+1995  #endif      
+1996  
+1997        /* Calculate velocity gradients */
+1998        CalcMonotonicQGradientsForElems(domain, vnew);
+1999  
+2000  #if USE_MPI      
+2001        Domain_member fieldData[3] ;
+...output truncated...

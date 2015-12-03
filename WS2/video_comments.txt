@@ -1,0 +1,115 @@
+3.1
+
+Race condition:
+- Open https://en.wikipedia.org/wiki/Race_condition and show things on 
+example.
+Race conditions occur when two or more threads try to access the same 
+variable 
+and change it at the same time.
+For example: 2 threads have the task of reading a value from the 
+variable, 
+increasing it and writing it back to the same variable. We can 
+see from this table that the threads both read the value of 
+variable before the thread that started reading it is finished 
+with increasing and overwriting. That results in a wrong result which should 
+be 2, not 1.
+
+
+Deadlock:
+- Show picture https://en.wikipedia.org/wiki/Deadlock#/media/File:Process_deadlock.svg 
+and explain.
+
+Deadlock is a situation when 2 or more threads are waiting for 
+each other to finish.
+Example:
+Thread 1 is updating Row 1 and wants to continue on updating Row 2.
+Thread 2 is at the same time updating Row 2 and wants to continue on 
+updating Row 2. Now, Thread 1 can't proceed to Row 2 since Thread 2 is 
+hold on Row 2 because it wants to proceed to Row 1. Both threads are  
+in hold and nothing is going to happen, meaning, we have a deadlock 
+going on.
+
+Heisenbug:
+
+Heisenbugs appear when someone tries to debug the code with putting some 
+additional output statements or similiar lines to the code, and the 
+program suddenly starts acting in a different way. That usually happnes 
+because such lines change the memory addresses and the timing of execution. 
+One of the examples is also removing the compilation flag which results 
+in some values being stored in memory instead of register.
+
+Floating-point arithmetic challenge:
+
+Comparisons
+http://floating-point-gui.de/errors/comparison/
+
+When we compare two floating-point numbers we have to be careful. If 
+they are very close together it matters how they were constructed. In 
+this example over here we can see that both floates, a and b are 0.3, 
+but the way they were calculated is different. The rounding errors are 
+also different meaning, that if we compare a and b, we can get an 
+unexpected result of A not being equal to B.
+
+Definition of a zero and signed zeros
+
+By one of the IEEE standards the zero representation in floating point 
+arithmetics is done with help of a signed zero, which yields that a 0 
+has 
+a sign (+ or -). The exact 0 is usually represented as +0, but can also 
+be represented with -0. Within the floating-point arithmetics we can 
+never know whether something equals exactly 0. That's why engineers 
+defined signed zero based on analogy of approaching 0 from below or 
+above limit.
+
+Cancellation or loss of significance
+https://en.wikipedia.org/wiki/Loss_of_significance (Demonstration of the 
+problem)
+
+Loss of significance can be explained with subtracting two fairly close 
+numbers. Let's define the first number and the second one. The second 
+number is represented on a machine that keeps 10 floating-point digits, 
+while the first is represented on a machine that keeps more than 10 
+digits. Let's firstly subtract the numbers on a more precise machine and 
+then on the 10-digits based one. We can observe that the results are 
+much different and that can cause many problems when we try to obtain 
+the correct results in our code.
+
+
+Amplification and error propagation
+
+When we use ill-posed operations such as subtraction and addition, we 
+make an error if the numbers of different magnitudes are used. 
+The more such ill-posed calculations that we use with one number, the 
+more the error amplifies at the end.
+
+
+
+------------------
+4.2.1
+
+Session Manager
+- open the manager and talk -
+
+The session manager provides the ability to add, delete and edit a 
+debugging session or to resume/start it.
+
+
+Root Window
+In the root window, we can observe all of the ranks, check their status and see which processes belong to them.
+
+Process Window
+The process window provide a lot of subwindows. However, it is the process window is the main point of observation.
+The stack trace pane consists of list of functions that are being called, ordered by the trace.
+The stack frame pane shows the values of local variables or registers, depending on what do we observe. It provides both, hexadecimal and decimal forms.
+In the source pane we can observe the source code or the binary. We can also set where do we want to stop at.
+The action points tab is a list of all of the points where we want to stop and debug something.
+The processes tab provides a possibility of putting a scope on a specific rank. All of the values in all of the windows are then changed based on that.
+The threads pane lists all of the threads of the rank chosen in the processes tab. Again, we can see what a specific thread is doing.
+
+Variable window
+It is issued with the letter v. Variable window is a tool which helps us 
+to search for a certain object and observe its value. 
+It also allows us to change the variable's value or to cast it.
+
+------------------------------------
+
