@@ -113,3 +113,47 @@ It also allows us to change the variable's value or to cast it.
 
 ------------------------------------
 
+
+4.3.1
+
+Control execution
+
+We can manage control execution with several resources. We can see the elementary 
+commands in these 4 buttons (Go, Halt, Kill, Restart). They all correspond to 
+running of the program which we want to debug. However, when running program in 
+parallel we have to decide which processes or threads our commands will affect.
+
+Setting breakpoints
+
+When we want to set a breakpoint in the code we want to set a point 
+in the code where we stop executing the program and review the current situation 
+of object values. Totalview provides valid breakpoints by itself. As we can see, we can find 
+a valid breaking point where the rectangle is drawn around the line number. 
+If there is no rectangle, we can't set a breaking point there. To set the point, we simply 
+click on the rectangle and the breakpoint is added to Action Points pane.
+
+Setting breakpoints is crucial for debugging, since we want to stop at several places 
+and check for the values of different objects. Only in this way, the debugging process
+can be successfull
+
+Diving into functions
+
+Diving into functions is a property of Totalview which enables us to observe more details
+and the definition of the function. Moreover, diving is enabled for all objects which contain 
+data. Let us dive into the function ParseCommandLineOptions. We right-click on it and select 
+dive. We see that the Source Pane immediately changed its content to the definition of this function.
+We can undive by selecting the left arrow in the right-upper corner. 
+
+When we feel that some bug might be present in a function which is called from the main 
+program, we can easily dive in and check the code and the variable values over there. That's 
+why diving is very important.
+
+View memory (variables and arrays)
+The memory can be accessed with variable window. We open it by pressing a letter v 
+on our keyboard and enter 1 hexadecimal address if we want access one variable. 
+If we want to access the array, we type in 2 hexadecimal addresses which define 
+an array interval.
+
+When we address the memory directly through our code (for example, in C++ language with pointers) 
+we want to know what values are stored with looking on that address directly. Only with 
+using this approach we can avoid confusion.
