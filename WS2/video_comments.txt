@@ -157,3 +157,20 @@ an array interval.
 When we address the memory directly through our code (for example, in C++ language with pointers) 
 we want to know what values are stored with looking on that address directly. Only with 
 using this approach we can avoid confusion.
+
+5.1
+OpenMP
+
+
+6.1
+MPI
+
+Let's put the breakpoint to the functions MPI_Comm_size, MPI_Comm_rank and the first point after these functions which is available to break.
+Let's run the benchmark for the first time now. We can observe in the stack frame that variables 
+numRank and myRank didn't change yet. Let's go to the next point. Now numRank should change according 
+to the process that we have in scope. We can see that if we change the rank to number 3, numRank 
+also changes correspondingly. The same hold for rank 4 and 5.
+
+We decided to visualize an array x_local. We have already put a breaking point to a place where we know 
+that this array is going to be filled. Let us visualize it now. We dive into the array, 
+click Tools, and then Visualize. We can now see a nice plot of current nodal velocities.
