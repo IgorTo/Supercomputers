@@ -1,0 +1,29 @@
+3.2
+
+1. Cannon's algorithm and the provided implementation
+
+
+2. Challenges in getting an accurate baseline and changes to the Load-Leveler batch script.
+Getting an accurate baseline is definitely an issue since you get different runtimes at different points for the same problem size and 
+procedure. The time variance happens because the system where we run the program is loaded differently at different points in time.
+One idea how-to avoid that is to make as much - let's call them measurements - as possible and to statistically approach the data, 
+for example, by averaging it. This is also the method which we used in this assignment.
+
+3. Compute time scalability with fixed 64 processes and varying size of input files
+We computed the time scalability and made a semi-logarithm plot as seen here in the figure.
+If we would have drawn our graph in decimal scale we would loose some information, especially at the lower 
+problem sizes where the time is quite low and it increases with 10 to the power of 1.
+We can see that the plot is more or less linear and that the Haswell architecture is better for all 
+of the problem sizes.
+
+4. MPI time scalability with fixed 64 processes and varying size of input files.
+Again, for the same reason as before, we have the semi-logarithm based scale. We can see that the Sandy-Bridge 
+architecture is overall better from MPI communication point of view. Haswell architecture is only better 
+when running with minimal and maximal problem sizes.
+
+If we compare both, MPI and computation time, we can see that MPI time is bigger within the lower area of problem 
+sizes, which is not that good. We don't want that communication would take more time than computation. 
+That's why we will optimize that in the further tasks.
+
+5. is contained in 4.
+
