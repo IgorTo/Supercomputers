@@ -1,10 +1,10 @@
-hasw <- as.matrix(read.table("3_haswell.txt", 
+hasw <- as.matrix(read.table("4_haswell.txt", 
                     skip = 8,
                     sep="\n", 
                     fill=FALSE, 
                     strip.white=TRUE))
 
-sandy <- as.matrix(read.table("3_sandybridge.txt",
+sandy <- as.matrix(read.table("4_sandybridge.txt",
                     skip = 8,
                     sep="\n", 
                     fill=FALSE, 
@@ -57,7 +57,7 @@ datei1 <- cbind(sizes, avgSandyC, avgSandyM)
 #slikca
 
 colnames(datei1) <- c("size", "avg.computation", "avg.mpi")
-write.csv(datei1, file = "sandy.csv", quote = FALSE, na = "NA", row.names = FALSE)
+write.csv(datei1, file = "sandy_nonblocking.csv", quote = FALSE, na = "NA", row.names = FALSE)
 
 
 #-------------------------HASWELL
@@ -66,7 +66,7 @@ datei2 <- cbind(sizes, avgHaswC, avgHaswM)
 #slikca
 
 colnames(datei2) <- c("size", "avg.computation", "avg.mpi")
-write.csv(datei2, file = "haswell.csv", quote = FALSE, na = "NA", row.names = FALSE)
+write.csv(datei2, file = "haswell_nonblocking.csv", quote = FALSE, na = "NA", row.names = FALSE)
 
 
 
