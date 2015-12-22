@@ -13,8 +13,6 @@ int main (int argc, char **argv) {
 	int rank, size, sqrt_size, matrices_a_b_dimensions[4];
 	MPI_Comm cartesian_grid_communicator, row_communicator, column_communicator;
 	MPI_Status status; 
-	MPI_Request array_of_requests[4];
-	MPI_Status array_of_statuses[4];
 
 	// used to manage the cartesian grid
 	int dimensions[2], periods[2], coordinates[2], remain_dims[2];
@@ -88,7 +86,7 @@ int main (int argc, char **argv) {
 			MPI_Abort(MPI_COMM_WORLD, -1);
 		}
 
-		// this implementation is limited to cases where the matrices can be partitioned perfectly
+		// this implementation is limited to cases where thematrices can be partitioned perfectly
 		if( matrices_a_b_dimensions[0] % sqrt_size != 0 
 				|| matrices_a_b_dimensions[1] % sqrt_size != 0 
 				|| matrices_a_b_dimensions[2] % sqrt_size != 0 
@@ -189,31 +187,47 @@ int main (int argc, char **argv) {
 	double compute_time = 0, mpi_time = 0, start;
 	int C_index, A_row, A_column, B_column;
 
-        // Set the A and B send/recv arrays 
-	double *Abuff[2], *Bbuff[2];
-        Abuff[0] = A_local_block;
-        Abuff[1] = (double *)malloc(A_local_block_size*sizeof(double)); 
-        Bbuff[0] = B_local_block; 
-        Bbuff[1] = (double *)malloc(B_local_block_size*sizeof(double)); 
+	// Set the A and B send/recv arrays 
+	double *Abuff, *Bbuff;
+        Abuff = (double *)malloc(A_local_block_size*sizeof(double)); 
+        Bbuff = (double *)malloc(B_local_block_size*sizeof(double)); 
+
+	MPI_Win *winA, *winB;
+	MPI_Info infoA, infoB;
+	MPI_Win_create(Abuff, A_local_block_size*sizeof(double), sizeof(double), infoA, row_communicator, winA);
+	MPI_Win_create(Bbuff, B_local_block_size*sizeof(double), sizeof(double), infoB, column_communicator, winB);
+
 
 	for(cannon_block_cycle = 0; cannon_block_cycle < sqrt_size; cannon_block_cycle++){
 		start = MPI_Wtime();
-			 MPI_Isend(Abuff[cannon_block_cycle%2], A_local_block_size, MPI_DOUBLE, /*left rank*/ 
-								(coordinates[1] + sqrt_size - 1)%sqrt_size, 1, 
-								row_communicator, &array_of_requests[0]); 
+			MPI_win_fence(assert, winB);
+			MPI_win_fence(assert, winA);
 
-			 MPI_Isend(Bbuff[cannon_block_cycle%2], A_local_block_size, MPI_DOUBLE, /*upper rank*/
-								(coordinates[0] + sqrt_size - 1)%sqrt_size, 1, 
-								column_communicator, &array_of_requests[1]); 
+			MPI_Put(A_local_block,  A_local_block_size*sizeof(double),  MPI_DOUBLE,/*target rank*/
+					 (coordinates[1] + sqrt_size - 1) % sqrt_size, sizeof(double), A_local_block_size*sizeof(double),  
+					 MPI_DOUBLE, winA);
+			MPI_Put(B_local_block,  B_local_block_size*sizeof(double),  MPI_DOUBLE,/*target rank*/
+					 (coordinates[0] + sqrt_size - 1) % sqrt_size, sizeof(double), A_local_block_size*sizeof(double),  
+					 MPI_DOUBLE, winB);
+		mpi_time += MPI_Wtime() - start;
 
-    			 MPI_Irecv(Abuff[(cannon_block_cycle+1)%2], B_local_block_size, MPI_DOUBLE, /*right rank*/
-								(coordinates[1] + 1)%sqrt_size, 1, 
-								row_communicator, &array_of_requests[2]); 
+		
+		// compute partial result for this block cycle
+		start = MPI_Wtime();
+		for(C_index = 0, A_row = 0; A_row < A_local_block_rows; A_row++){
+			for(B_column = 0; B_column < B_local_block_columns; B_column++, C_index++){
+				for(A_column = 0; A_column < A_local_block_columns; A_column++){
+					C_local_block[C_index] += A_local_block[A_row * A_local_block_columns + A_column] *
+						B_local_block[A_column * B_local_block_columns + B_column];
+				}
+			}
+		}
+		compute_time += MPI_Wtime() - start;
 
-    			 MPI_Irecv(Bbuff[(cannon_block_cycle+1)%2], B_local_block_size, MPI_DOUBLE, /*lower rank*/
-								(coordinates[0] + 1)%sqrt_size, 1, 
-								column_communicator, &array_of_requests[3]);
 
+		start = MPI_Wtime();
+			MPI_win_fence(assert, winB);
+			MPI_win_fence(assert, winA);
 		// rotate blocks horizontally
 //		MPI_Sendrecv_replace(A_local_block, A_local_block_size, MPI_DOUBLE, 
 //				(coordinates[1] + sqrt_size - 1) % sqrt_size, 0, 
@@ -223,28 +237,7 @@ int main (int argc, char **argv) {
 //				(coordinates[0] + sqrt_size - 1) % sqrt_size, 0, 
 //				(coordinates[0] + 1) % sqrt_size, 0, column_communicator, &status);
 		mpi_time += MPI_Wtime() - start;
-		
-		
-		// compute partial result for this block cycle.
-		// For X_local_block we use Xbuff[cannon_block_cycle%2], bcs it was sent (and not in process of recieving, so it can be used).
-		start = MPI_Wtime();
-		for(C_index = 0, A_row = 0; A_row < A_local_block_rows; A_row++){
-			for(B_column = 0; B_column < B_local_block_columns; B_column++, C_index++){
-				for(A_column = 0; A_column < A_local_block_columns; A_column++){
-					C_local_block[C_index] += Abuff[cannon_block_cycle%2][A_row * A_local_block_columns + A_column] *
-								  Bbuff[cannon_block_cycle%2][A_column * B_local_block_columns + B_column];
-				}
-			}
-			MPI_Probe((coordinates[0] + 1)%sqrt_size, 1, column_communicator, status);
-		}
-		compute_time += MPI_Wtime() - start;
-
-
-		start = MPI_Wtime();
-			MPI_Waitall(4, array_of_requests, array_of_statuses);
-		mpi_time += MPI_Wtime() - start;
-	} //Theoretical overlap: the whole send/recieve part with the whole computation part. (=mpi_time should be very small, with most of mpi work
-	  // being done during the compute_time. 
+	}
 
 	// get C parts from other processes at rank 0
 	if(rank == 0) {
