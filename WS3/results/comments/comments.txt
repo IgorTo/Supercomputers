@@ -1,7 +1,22 @@
 3.2
 
 1. Cannon's algorithm and the provided implementation
+Cannon's algorithm is a distributed matrix-multiplication algorithm that is based on rotating parts of the matrices row- and column-wise, 
+and multiplying different cobinations in parallel. The implementation that is provided is using blocking MPI point-to-point communication, and
+it only allows a perfect number of processes, and matrix sizes that can be equally distributed between all ranks.
+ 
+The program starts with the usual MPI initialisation, then we create additional communicators.
+Since we circulate chunks of data among rows and columns, the underlying topology is that of a torus. So we create one main communicator
+with a virtual cartesian grid topology, to make it easier to calculate the ranks of the neighbours, but also two sub communicators - one for
+the exchanges among rows, and one for those among columns. This can be done since these two are disjunct.
 
+The rank 0 reads the matrices from input file and distributes the chunks and matrix sizes to other ranks. 
+The main computational part starts here (kjer je komentar //canons algo), with computation of a partial product with chunks, followed
+by Sendrecv_replace functions, which send a chunk to some neighbour and recieve another chunk on the same space.
+
+After the main computation is done, the rank 0 gathers partial results from other ranks and generates an output.
+
+ 
 
 2. Challenges in getting an accurate baseline and changes to the Load-Leveler batch script.
 Getting an accurate baseline is definitely an issue since you get different runtimes at different points for the same problem size and 
@@ -27,3 +42,22 @@ That's why we will optimize that in the further tasks.
 
 5. is contained in 4.
 
+
+
+4.2
+1. To reformulate the MPI_sendrecv_replace operations we used the nonblocking versions of send and recieve, Isend and Irecv. Since the
+ranks don't wait for the communication to finish, we have to wait for it at some point. For this we use MPI_Waitall at the end.
+
+2. The theoretical maximum overlap would be if the communication time would completely overlap with the computation part. Since we separately
+measure the time of computation and the time of MPI calls, this would mean that the MPI part should be very small, or close to zero; since we
+expect that most of this mpi work will be covered in the compute_time.
+
+3. Communication and computation overlap was not completely achieved; at bigger problem sizes, the mpi time gets bigger and is not negligible
+anymore. (TO SE LH DA SPREMENI S PROBE-OM!)
+
+4. The computation parts were basically the same for both, blocking and non-blocking versions. The MPI part however, gave us some speedup.
+Except for the very small problem sizes in the case of Haswell, where the blocking version seemed to perform better, or a middle sized problem
+in the case of sandy, where the time consumptions of both versions are very similar. 
+
+5. When comparing Sandy bridge and Haswell nodes we see that the computation time is more or less equal in both cases, while the mpi takes
+much les time for small problems on the sandy bridge, while for bigger ones, Haswell seems to be in the lead.  
