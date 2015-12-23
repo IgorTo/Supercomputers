@@ -235,7 +235,6 @@ int main (int argc, char **argv) {
 //		MPI_Sendrecv_replace(B_local_block, B_local_block_size, MPI_DOUBLE, 
 //				(coordinates[0] + sqrt_size - 1) % sqrt_size, 0, 
 //				(coordinates[0] + 1) % sqrt_size, 0, column_communicator, &status);
-		
 		//now copy the stuff you recieved in the window buffer into your local one:
 		//A_local_block <- Abuff
 		//B_local_block <- Bbuff
@@ -243,7 +242,6 @@ int main (int argc, char **argv) {
 		memcpy(Bbuff, B_local_block, B_local_block_size);
 
 		mpi_time += MPI_Wtime() - start;  //copying counted under mpi time, since it's the price of one-sided communication...
-		
 	}
 	MPI_Win_free(&winA);
 	MPI_Win_free(&winB);

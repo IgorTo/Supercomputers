@@ -1,0 +1,37 @@
+
+DISK GROUP QUOTAS for home and project file systems:
+Filesystem                                 Quota     Used Space     Free Space
+/home/hpc/h039y           ($HOME)        102.4GB   74.4GB (73%)   28.0GB (27%)
+/gpfs/work/h039y          ($WORK)        1000.0GB   53.4GB ( 5%)  946.6GB (95%)
+-------------------------------------------------------------------------------
+
+Executing LRZ User Prolog ...
+Wed Dec 23 17:37:16 CET 2015
+(64,64)x(64,64)=(64,64)
+Computation time: 0.000009
+MPI time:         0.026958
+Wed Dec 23 17:37:18 CET 2015
+(128,128)x(128,128)=(128,128)
+Computation time: 0.000065
+MPI time:         0.021766
+Wed Dec 23 17:37:20 CET 2015
+(256,256)x(256,256)=(256,256)
+Computation time: 0.000229
+MPI time:         0.023164
+Wed Dec 23 17:37:22 CET 2015
+(512,512)x(512,512)=(512,512)
+Computation time: 0.001668
+MPI time:         0.023951
+Wed Dec 23 17:37:24 CET 2015
+(1024,1024)x(1024,1024)=(1024,1024)
+Computation time: 0.017899
+MPI time:         0.031935
+Wed Dec 23 17:37:26 CET 2015
+(2048,2048)x(2048,2048)=(2048,2048)
+Computation time: 0.299912
+MPI time:         0.050705
+Wed Dec 23 17:37:30 CET 2015
+(4096,4096)x(4096,4096)=(4096,4096)
+Computation time: 2.493382
+MPI time:         0.387546
+Wed Dec 23 17:37:42 CET 2015
