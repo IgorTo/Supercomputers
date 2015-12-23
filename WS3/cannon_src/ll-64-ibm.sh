@@ -17,18 +17,23 @@
 . /etc/profile
 . /etc/profile.d/modules.sh
 
-date
-mpiexec -n 64 ./cannon 64x64-1.in 64x64-2.in
-date
-mpiexec -n 64 ./cannon 128x128-1.in 128x128-2.in
-date
-mpiexec -n 64 ./cannon 256x256-1.in 256x256-2.in
-date
-mpiexec -n 64 ./cannon 512x512-1.in 512x512-2.in
-date
-mpiexec -n 64 ./cannon 1024x1024-1.in 1024x1024-2.in
-date
-mpiexec -n 64 ./cannon 2048x2048-1.in 2048x2048-2.in
-date
-mpiexec -n 64 ./cannon 4096x4096-1.in 4096x4096-2.in
-date
+
+counter="0";
+while [ $counter -lt 10 ]; do
+	date
+	mpiexec -n 64 ./cannon 64x64-1.in 64x64-2.in
+	date
+	mpiexec -n 64 ./cannon 128x128-1.in 128x128-2.in
+	date
+	mpiexec -n 64 ./cannon 256x256-1.in 256x256-2.in
+	date
+	mpiexec -n 64 ./cannon 512x512-1.in 512x512-2.in
+	date
+	mpiexec -n 64 ./cannon 1024x1024-1.in 1024x1024-2.in
+	date
+	mpiexec -n 64 ./cannon 2048x2048-1.in 2048x2048-2.in
+	date
+	mpiexec -n 64 ./cannon 4096x4096-1.in 4096x4096-2.in
+	date
+	counter=$[$counter+1];
+done

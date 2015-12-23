@@ -188,6 +188,7 @@ int main (int argc, char **argv) {
 	int cannon_block_cycle;
 	double compute_time = 0, mpi_time = 0, start;
 	int C_index, A_row, A_column, B_column;
+	int flag;
 
         // Set the A and B send/recv arrays 
 	double *Abuff[2], *Bbuff[2];
@@ -235,6 +236,7 @@ int main (int argc, char **argv) {
 								  Bbuff[cannon_block_cycle%2][A_column * B_local_block_columns + B_column];
 				}
 			}
+			MPI_Testall(4, array_of_requests, &flag, array_of_statuses);
 		}
 		compute_time += MPI_Wtime() - start;
 
