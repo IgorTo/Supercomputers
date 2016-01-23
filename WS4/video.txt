@@ -1,0 +1,24 @@
+Part1: collectives
+  - run normal, simplest, ScatterGather, optimal.  Primerjaj celotni čas vseh, ter mpi/računanje čas izmerjen pri normalnem in ScatterGather/optimal (lahko tudi obeh).
+    Primerjaj katera verzija je najhitrejsa, in katera ma hitrejsi mpi. Naredi grafe.
+  - Razloži kake spremembe so v fajlu (best, če bo čas pa še v vseh ostalih; najboljš bi blo mogoče ta simplest, pa še ta optimal (časovno optimal))
+  - Razloži zakaj je/ni blocking, katerih delov in zakaj se ne da, etc.
+  - Vprašanja: 1. would you expect pefromance or scalability benefits from the changes in this application? Explain.
+                      ::: To bova pol, ko dobiva rezultate za čase ko jih programi porabjo...
+               2. is the resulting code easier to maintain and understand after changes? why?
+                      ::: Yes. The code is shorter, possibility of error is reduced because we can replace many point to point
+                          calls with only one collective, source code is more readable, and therefore also simplifies debugging
+                          and maintenance. These collective routines are also built using point-to-point
+                          communication routines (so in principle they are more or less build with the point to point calls, that
+                          we're trying to replace with them), but in a highly optimized way, so its better to use them.
+
+
+Part2: MPI I/O operacije
+  - Vprašanja: 1. what is data sieving and 2-phase IO? How do they improve performance?
+                      :::Data sieving = 
+               2. was the original implementation scalable in terms of IO performance?
+                      :::
+               3. was original implementation scalable in terms of RAM storage?
+                      :::
+               4. how much of the communication in the application was replaced with MPI_IO operations?
+                      :::
