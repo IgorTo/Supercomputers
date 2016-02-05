@@ -1,0 +1,456 @@
+
+DISK GROUP QUOTAS for home and project file systems:
+Filesystem                                 Quota     Used Space     Free Space
+/home/hpc/h039y           ($HOME)        102.4GB   92.4GB (90%)   10.0GB (10%)
+/gpfs/work/h039y          ($WORK)        1000.0GB   77.2GB ( 8%)  922.8GB (92%)
+-------------------------------------------------------------------------------
+
+Executing LRZ User Prolog ...
+Fri Feb  5 19:23:54 CET 2016
+
+(64,64)x(64,64)=(64,64)
+Computation time: 0.000007
+MPI time:         0.000089
+Read time:        0.022812
+Send dims time:   0.000015
+Gather time:      0.000068
+Write time:       0.053018
+Fri Feb  5 19:23:56 CET 2016
+
+(128,128)x(128,128)=(128,128)
+Computation time: 0.000035
+MPI time:         0.000093
+Read time:        0.331700
+Send dims time:   0.000018
+Gather time:      0.001755
+Write time:       0.066802
+Fri Feb  5 19:23:58 CET 2016
+
+(256,256)x(256,256)=(256,256)
+Computation time: 0.000224
+MPI time:         0.000255
+Read time:        0.025697
+Send dims time:   0.000018
+Gather time:      0.003192
+Write time:       0.086272
+Fri Feb  5 19:23:59 CET 2016
+
+(512,512)x(512,512)=(512,512)
+Computation time: 0.002241
+MPI time:         0.000647
+Read time:        0.544985
+Send dims time:   0.000026
+Gather time:      0.005251
+Write time:       0.181459
+Fri Feb  5 19:24:02 CET 2016
+
+(1024,1024)x(1024,1024)=(1024,1024)
+Computation time: 0.018210
+MPI time:         0.007136
+Read time:        0.061543
+Send dims time:   0.000019
+Gather time:      0.009213
+Write time:       0.347758
+Fri Feb  5 19:24:04 CET 2016
+
+(2048,2048)x(2048,2048)=(2048,2048)
+Computation time: 0.300929
+MPI time:         0.009995
+Read time:        0.158974
+Send dims time:   0.000019
+Gather time:      0.030140
+Write time:       1.661984
+Fri Feb  5 19:24:08 CET 2016
+
+(4096,4096)x(4096,4096)=(4096,4096)
+Computation time: 2.481586
+MPI time:         0.269659
+Read time:        0.915668
+Send dims time:   0.000025
+Gather time:      0.170933
+Write time:       9.823814
+Fri Feb  5 19:24:23 CET 2016
+Fri Feb  5 19:24:23 CET 2016
+
+(64,64)x(64,64)=(64,64)
+Computation time: 0.000007
+MPI time:         0.000102
+Read time:        0.019266
+Send dims time:   0.000015
+Gather time:      0.000062
+Write time:       0.081559
+Fri Feb  5 19:24:25 CET 2016
+
+(128,128)x(128,128)=(128,128)
+Computation time: 0.000035
+MPI time:         0.000097
+Read time:        0.024830
+Send dims time:   0.000016
+Gather time:      0.001830
+Write time:       0.080314
+Fri Feb  5 19:24:27 CET 2016
+
+(256,256)x(256,256)=(256,256)
+Computation time: 0.000225
+MPI time:         0.000235
+Read time:        0.014432
+Send dims time:   0.000014
+Gather time:      0.003343
+Write time:       0.074413
+Fri Feb  5 19:24:29 CET 2016
+
+(512,512)x(512,512)=(512,512)
+Computation time: 0.001602
+MPI time:         0.000615
+Read time:        0.017916
+Send dims time:   0.000015
+Gather time:      0.005122
+Write time:       0.145296
+Fri Feb  5 19:24:31 CET 2016
+
+(1024,1024)x(1024,1024)=(1024,1024)
+Computation time: 0.018265
+MPI time:         0.009273
+Read time:        0.023692
+Send dims time:   0.000016
+Gather time:      0.009750
+Write time:       0.355921
+Fri Feb  5 19:24:33 CET 2016
+
+(2048,2048)x(2048,2048)=(2048,2048)
+Computation time: 0.300661
+MPI time:         0.009583
+Read time:        0.051105
+Send dims time:   0.000016
+Gather time:      0.031621
+Write time:       1.473185
+Fri Feb  5 19:24:36 CET 2016
+
+(4096,4096)x(4096,4096)=(4096,4096)
+Computation time: 2.484162
+MPI time:         0.251697
+Read time:        0.155088
+Send dims time:   0.000015
+Gather time:      0.108414
+Write time:       8.581344
+Fri Feb  5 19:24:50 CET 2016
+Fri Feb  5 19:24:50 CET 2016
+
+(64,64)x(64,64)=(64,64)
+Computation time: 0.000007
+MPI time:         0.000083
+Read time:        0.014270
+Send dims time:   0.000015
+Gather time:      0.000078
+Write time:       0.061377
+Fri Feb  5 19:24:52 CET 2016
+
+(128,128)x(128,128)=(128,128)
+Computation time: 0.000034
+MPI time:         0.000095
+Read time:        0.014186
+Send dims time:   0.000015
+Gather time:      0.001702
+Write time:       0.071949
+Fri Feb  5 19:24:53 CET 2016
+
+(256,256)x(256,256)=(256,256)
+Computation time: 0.000224
+MPI time:         0.000222
+Read time:        0.014775
+Send dims time:   0.000016
+Gather time:      0.003359
+Write time:       0.080016
+Fri Feb  5 19:24:55 CET 2016
+
+(512,512)x(512,512)=(512,512)
+Computation time: 0.001624
+MPI time:         0.000619
+Read time:        0.016742
+Send dims time:   0.000016
+Gather time:      0.005400
+Write time:       0.136314
+Fri Feb  5 19:24:57 CET 2016
+
+(1024,1024)x(1024,1024)=(1024,1024)
+Computation time: 0.018175
+MPI time:         0.006761
+Read time:        0.022813
+Send dims time:   0.000015
+Gather time:      0.009311
+Write time:       0.375213
+Fri Feb  5 19:24:59 CET 2016
+
+(2048,2048)x(2048,2048)=(2048,2048)
+Computation time: 0.300526
+MPI time:         0.010741
+Read time:        0.051162
+Send dims time:   0.000015
+Gather time:      0.031744
+Write time:       1.532657
+Fri Feb  5 19:25:03 CET 2016
+
+(4096,4096)x(4096,4096)=(4096,4096)
+Computation time: 2.509477
+MPI time:         0.198689
+Read time:        0.157178
+Send dims time:   0.000013
+Gather time:      0.118418
+Write time:       8.578959
+Fri Feb  5 19:25:16 CET 2016
+Fri Feb  5 19:25:16 CET 2016
+
+(64,64)x(64,64)=(64,64)
+Computation time: 0.000007
+MPI time:         0.000091
+Read time:        0.017234
+Send dims time:   0.000014
+Gather time:      0.000055
+Write time:       0.064039
+Fri Feb  5 19:25:18 CET 2016
+
+(128,128)x(128,128)=(128,128)
+Computation time: 0.000034
+MPI time:         0.000110
+Read time:        0.017607
+Send dims time:   0.000015
+Gather time:      0.001794
+Write time:       0.065825
+Fri Feb  5 19:25:20 CET 2016
+
+(256,256)x(256,256)=(256,256)
+Computation time: 0.000224
+MPI time:         0.000215
+Read time:        0.018663
+Send dims time:   0.000015
+Gather time:      0.003167
+Write time:       0.087893
+Fri Feb  5 19:25:22 CET 2016
+
+(512,512)x(512,512)=(512,512)
+Computation time: 0.001597
+MPI time:         0.000651
+Read time:        0.020414
+Send dims time:   0.000015
+Gather time:      0.005190
+Write time:       0.147732
+Fri Feb  5 19:25:24 CET 2016
+
+(1024,1024)x(1024,1024)=(1024,1024)
+Computation time: 0.018442
+MPI time:         0.006244
+Read time:        0.028089
+Send dims time:   0.000015
+Gather time:      0.009363
+Write time:       0.347494
+Fri Feb  5 19:25:26 CET 2016
+
+(2048,2048)x(2048,2048)=(2048,2048)
+Computation time: 0.300659
+MPI time:         0.010383
+Read time:        0.054504
+Send dims time:   0.000016
+Gather time:      0.031742
+Write time:       1.644780
+Fri Feb  5 19:25:30 CET 2016
+
+(4096,4096)x(4096,4096)=(4096,4096)
+Computation time: 2.781328
+MPI time:         0.069011
+Read time:        0.158797
+Send dims time:   0.000015
+Gather time:      0.128143
+Write time:       8.993751
+Fri Feb  5 19:25:44 CET 2016
+Fri Feb  5 19:25:44 CET 2016
+
+(64,64)x(64,64)=(64,64)
+Computation time: 0.000007
+MPI time:         0.000092
+Read time:        0.014178
+Send dims time:   0.000016
+Gather time:      0.000083
+Write time:       0.065360
+Fri Feb  5 19:25:46 CET 2016
+
+(128,128)x(128,128)=(128,128)
+Computation time: 0.000034
+MPI time:         0.000249
+Read time:        0.148753
+Send dims time:   0.000015
+Gather time:      0.001692
+Write time:       0.074431
+Fri Feb  5 19:25:48 CET 2016
+
+(256,256)x(256,256)=(256,256)
+Computation time: 0.000223
+MPI time:         0.000231
+Read time:        0.019490
+Send dims time:   0.000014
+Gather time:      0.003362
+Write time:       0.080910
+Fri Feb  5 19:25:50 CET 2016
+
+(512,512)x(512,512)=(512,512)
+Computation time: 0.001609
+MPI time:         0.000600
+Read time:        0.489436
+Send dims time:   0.000020
+Gather time:      0.005223
+Write time:       0.150983
+Fri Feb  5 19:25:52 CET 2016
+
+(1024,1024)x(1024,1024)=(1024,1024)
+Computation time: 0.018545
+MPI time:         0.006425
+Read time:        0.024504
+Send dims time:   0.000014
+Gather time:      0.009466
+Write time:       0.329480
+Fri Feb  5 19:25:54 CET 2016
+
+(2048,2048)x(2048,2048)=(2048,2048)
+Computation time: 0.300699
+MPI time:         0.009526
+Read time:        0.188703
+Send dims time:   0.000016
+Gather time:      0.031599
+Write time:       1.489106
+Fri Feb  5 19:25:58 CET 2016
+
+(4096,4096)x(4096,4096)=(4096,4096)
+Computation time: 2.522007
+MPI time:         0.239458
+Read time:        0.692986
+Send dims time:   0.000020
+Gather time:      0.143235
+Write time:       8.895483
+Fri Feb  5 19:26:12 CET 2016
+Fri Feb  5 19:26:12 CET 2016
+
+(64,64)x(64,64)=(64,64)
+Computation time: 0.000007
+MPI time:         0.000110
+Read time:        0.342603
+Send dims time:   0.000018
+Gather time:      0.000062
+Write time:       0.069655
+Fri Feb  5 19:26:14 CET 2016
+
+(128,128)x(128,128)=(128,128)
+Computation time: 0.000037
+MPI time:         0.000124
+Read time:        0.013949
+Send dims time:   0.000016
+Gather time:      0.001774
+Write time:       0.177242
+Fri Feb  5 19:26:16 CET 2016
+
+(256,256)x(256,256)=(256,256)
+Computation time: 0.000224
+MPI time:         0.000235
+Read time:        0.365072
+Send dims time:   0.000018
+Gather time:      0.003321
+Write time:       0.085397
+Fri Feb  5 19:26:19 CET 2016
+
+(512,512)x(512,512)=(512,512)
+Computation time: 0.001605
+MPI time:         0.000694
+Read time:        0.016216
+Send dims time:   0.000015
+Gather time:      0.005227
+Write time:       0.126714
+Fri Feb  5 19:26:20 CET 2016
+
+(1024,1024)x(1024,1024)=(1024,1024)
+Computation time: 0.018323
+MPI time:         0.008987
+Read time:        0.396903
+Send dims time:   0.000020
+Gather time:      0.010012
+Write time:       0.318684
+Fri Feb  5 19:26:23 CET 2016
+
+(2048,2048)x(2048,2048)=(2048,2048)
+Computation time: 0.300485
+MPI time:         0.010450
+Read time:        0.049555
+Send dims time:   0.000015
+Gather time:      0.031598
+Write time:       2.606760
+Fri Feb  5 19:26:28 CET 2016
+
+(4096,4096)x(4096,4096)=(4096,4096)
+Computation time: 2.562523
+MPI time:         0.139790
+Read time:        0.154316
+Send dims time:   0.000015
+Gather time:      0.119212
+Write time:       6.515042
+Fri Feb  5 19:26:39 CET 2016
+Fri Feb  5 19:26:39 CET 2016
+
+(64,64)x(64,64)=(64,64)
+Computation time: 0.000007
+MPI time:         0.000097
+Read time:        0.020523
+Send dims time:   0.000015
+Gather time:      0.000067
+Write time:       0.067014
+Fri Feb  5 19:26:41 CET 2016
+
+(128,128)x(128,128)=(128,128)
+Computation time: 0.000035
+MPI time:         0.000091
+Read time:        0.017669
+Send dims time:   0.000014
+Gather time:      0.001765
+Write time:       0.068668
+Fri Feb  5 19:26:43 CET 2016
+
+(256,256)x(256,256)=(256,256)
+Computation time: 0.000224
+MPI time:         0.000227
+Read time:        0.018260
+Send dims time:   0.000015
+Gather time:      0.003255
+Write time:       0.082624
+Fri Feb  5 19:26:44 CET 2016
+
+(512,512)x(512,512)=(512,512)
+Computation time: 0.001605
+MPI time:         0.000640
+Read time:        0.020967
+Send dims time:   0.000015
+Gather time:      0.005392
+Write time:       0.150269
+Fri Feb  5 19:26:46 CET 2016
+
+(1024,1024)x(1024,1024)=(1024,1024)
+Computation time: 0.018267
+MPI time:         0.006591
+Read time:        0.027726
+Send dims time:   0.000016
+Gather time:      0.009421
+Write time:       0.334188
+Fri Feb  5 19:26:49 CET 2016
+
+(2048,2048)x(2048,2048)=(2048,2048)
+Computation time: 0.300494
+MPI time:         0.009945
+Read time:        0.052995
+Send dims time:   0.000015
+Gather time:      0.032708
+Write time:       2.305511
+Fri Feb  5 19:26:53 CET 2016
+
+(4096,4096)x(4096,4096)=(4096,4096)
+Computation time: 2.503336
+MPI time:         0.303631
+Read time:        0.157889
+Send dims time:   0.000015
+Gather time:      0.086785
+Write time:       8.769288
+Fri Feb  5 19:27:07 CET 2016
