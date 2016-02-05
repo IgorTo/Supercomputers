@@ -19,16 +19,9 @@ int main (int argc, char **argv) {
 	// used to manage the cartesian grid
 	int dimensions[2], periods[2], coordinates[2], remain_dims[2];
 
-	double time_init;
-	clock_t begin, end;
-
-	begin = clock();
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-	end = clock();
-	if (rank == 0) time_init = (double)(end - begin);
 
 	/* For square mesh */
 	sqrt_size = (int)sqrt((double) size);
@@ -291,7 +284,7 @@ B_local_block[A_column * B_local_block_columns + B_column];
 	// -------- Writing to the File ----------
 	
 	MPI_File fhOutput;
-	char outputFile[20];
+	char outputFile[50];
 	sprintf(outputFile, "resultFiles/%dx%d.output", matrices_a_b_dimensions[2], matrices_a_b_dimensions[3]);
 
 	// Make a file type for C matrix
@@ -322,11 +315,9 @@ B_local_block[A_column * B_local_block_columns + B_column];
 		printf("\n");
 		printf("(%d,%d)x(%d,%d)=(%d,%d)\n", A_rows, A_columns, B_rows, B_columns, A_rows, B_columns);
 		printf("Computation time: %lf\n", compute_time);
-		printf("MPI init time: %lf\n", -time_init);
 		printf("MPI time:         %lf\n", mpi_time);
 		printf("Read time:        %lf\n", -read_time);
 		printf("Send dims time:   %lf\n", -send_dim_time);
-		printf("Send blocks time: %lf\n", -send_blocks_time);
 		printf("Gather time:      %lf\n", -gather_time);
 		printf("Write time:       %lf\n", -write_time);
 
@@ -349,6 +340,8 @@ B_local_block[A_column * B_local_block_columns + B_column];
 	free(A_local_block);
 	free(B_local_block);
 	free(C_local_block);
+	free(larrayA);
+	free(larrayB);
 
 	// finalize MPI
 	MPI_Finalize();
